@@ -209,6 +209,11 @@
             var g_current_point = null;
             var g_current_line = null;
             var g_set = null;
+            var g_splashpath = {"path":{"name":"HI","origin":{"x":"27","y":"36","rot":"0"},"transitions":[{"x":"29","y":"98","rot":"0","interval":".2"},{"x":"26","y":"150","rot":"0","interval":".2"},{"x":"139","y":"31","rot":"0","interval":".2"},{"x":"131","y":"88","rot":"0","interval":".2"},{"x":"133","y":"142","rot":"0","interval":".2"},{"x":"60","y":"98","rot":"0","interval":".2"},{"x":"83","y":"97","rot":"0","interval":".2"},{"x":"106","y":"95","rot":"0","interval":".2"},{"x":"189","y":"24","rot":"0","interval":".2"},{"x":"221","y":"23","rot":"0","interval":".2"},{"x":"260","y":"23","rot":"0","interval":".2"},{"x":"222","y":"42","rot":"0","interval":".2"},{"x":"221","y":"71","rot":"0","interval":".2"},{"x":"219","y":"102","rot":"0","interval":".2"},{"x":"216","y":"129","rot":"0","interval":".2"},{"x":"193","y":"155","rot":"0","interval":".2"},{"x":"165","y":"155","rot":"0","interval":".2"},{"x":"224","y":"154","rot":"0","interval":".2"},{"x":"256","y":"154","rot":"0","interval":".2"},{"x":"287","y":"154","rot":"0","interval":".2"},{"x":"15","y":"256","rot":"0","interval":".2"},{"x":"207","y":"250","rot":"0","interval":".2"},{"x":"4","y":"327","rot":"0","interval":".2"},{"x":"21","y":"348","rot":"0","interval":".2"},{"x":"66","y":"357","rot":"0","interval":".2"},{"x":"121","y":"360","rot":"0","interval":".2"},{"x":"172","y":"355","rot":"0","interval":".2"},{"x":"229","y":"350","rot":"0","interval":".2"},{"x":"265","y":"331","rot":"0","interval":".2"}]}};
+
+
+
+
             function Dialog_OnOK()
             {
                 
@@ -1033,7 +1038,11 @@
                               
                               if (e.keyCode == 27) { console.log("esc");}   // esc
                               });
-            
+
+        var str = JSON.stringify(g_splashpath);
+        $("#inputareatxt").val(str);
+        inputjsonclicked(null);
+
         </script>
     </body>
     
