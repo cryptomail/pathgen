@@ -17,3 +17,6 @@
 ###Todo:
 1. implement rubber banding
 2. consider using mvvm for stuff
+3. JSON editor for input/output
+4. resize
+5. put in object model (see 2)
