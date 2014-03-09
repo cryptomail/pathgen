@@ -14,4 +14,6 @@
 9. output to JSON for saving
 
 
-
+###Todo:
+1. implement rubber banding
+2. consider using mvvm for stuff
