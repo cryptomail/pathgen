@@ -74,7 +74,6 @@ var pathgen = {
         if(dx >= 0 && dy >= 0)
         {
             line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
-
         }
         else if(dx <=0 && dy <= 0)
         {
@@ -117,7 +116,7 @@ var pathgen = {
 
             var p2 = {
                 x:b.attr('cx'),
-            y:b.attr('cy')
+                y:b.attr('cy')
             };
 
             var line = pathgen.createLine(p1,p2);
