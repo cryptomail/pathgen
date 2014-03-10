@@ -20,3 +20,6 @@
 3. JSON editor for input/output
 4. resize
 5. put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects]
+
+###Progress:
+1.  03/09/2014 I made rubber banding better on the balls.
