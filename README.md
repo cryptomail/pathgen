@@ -15,8 +15,8 @@
 
 
 ###Todo:
-1. implement rubber banding
+1. implement rubber banding [ 03/09/2014 wait didn't I just do that! \o/ yay]
 2. consider using mvvm for stuff
 3. JSON editor for input/output
 4. resize
-5. put in object model (see 2)
+5. put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects]
