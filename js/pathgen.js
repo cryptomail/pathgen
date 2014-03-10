@@ -12,7 +12,9 @@ var pathgen = {
     segmentlist: [],
     simulationmode:false,
     default_circle_radius:10,
+    default_sqrt_radius:Math.sqrt(10),
     default_circle_fillcolor: "red",
+    default_circle_hoverincolor: "pink",
     pointCounter:0,
     /*
     Initializes pathgen object.
@@ -36,12 +38,29 @@ var pathgen = {
         element.onclick = pathgen.onClickpaper;
     },
     /*
+     pointHoverIn
+     */
+    pointHoverIn: function(e,x,y)
+    {
+        this.attr({fill:pathgen.default_circle_hoverincolor});
+    },
+    /*
+     pointHoverOut
+     */
+    pointHoverOut: function(e,x,y)
+    {
+        this.attr({fill:pathgen.default_circle_fillcolor});
+    },
+
+
+    /*
     addPoint
     Adds a point at x,y
      */
     addPoint: function(x,y)
     {
         var circle = pathgen.paper.circle(x,y,pathgen.default_circle_radius);
+        circle.hover(pathgen.pointHoverIn,pathgen.pointHoverOut,circle,circle);
         circle.pointId = pathgen.pointCounter;
         circle.parentPathGen = pathgen;
         circle.pointCounter++;
@@ -53,6 +72,8 @@ var pathgen = {
         {
             var a = pathgen.pointlist[pathgen.pointlist.length -2];
             var b = pathgen.pointlist[pathgen.pointlist.length -1];
+
+
             var line = pathgen.paper.line(a.attr('cx'),a.attr('cy'),b.attr('cx'),b.attr('cy'));
             line.parentPathGen = pathgen;
             pathgen.segmentlist.push(line);
@@ -69,8 +90,9 @@ var pathgen = {
             if(!e.defaultPrevented)
             {
                 pathgen.addPoint(e.offsetX, e.offsetY);
+                console.log("add point x: " + e.offsetX + " y: " + e.offsetY);
             }
-            console.log("x: " + e.offsetX + " y: " + e.offsetY);
+
 
         }
         else
@@ -83,10 +105,11 @@ var pathgen = {
         console.log("point x: " + e.offsetX + " point y: " + e.offsetY);
         e.preventDefault();
     },
-    pointDragStart: function()
+    pointDragStart: function(x,y,e)
     {
         this.ox = this.attr("cx");
         this.oy = this.attr("cy");
+        e.preventDefault();
     },
     pointDragMove: function(dx,dy)
     {
@@ -172,8 +195,9 @@ var pathgen = {
 
 
     },
-    pointDragEnd: function()
+    pointDragEnd: function(e)
     {
+        e.preventDefault();
 
     }
 
