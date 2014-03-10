@@ -54,6 +54,43 @@ var pathgen = {
 
 
     /*
+    line angle
+     */
+    lineAngle: function(p1,p2)
+    {
+        var xDiff = p2.x - p1.x;
+        var yDiff = p2.y - p1.y;
+        return -Math.atan2(yDiff, xDiff);
+
+    },
+    createLine: function(p1,p2)
+    {
+        var lineangle = pathgen.lineAngle(p1,p2);
+
+
+        var dx = Math.cos(lineangle) * pathgen.default_circle_radius;
+        var dy = Math.sin(lineangle) * pathgen.default_circle_radius;
+        var line = null;
+        if(dx >= 0 && dy >= 0)
+        {
+            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+
+        }
+        else if(dx <=0 && dy <= 0)
+        {
+            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+        }
+        else if(dx >=0 && dy <= 0)
+        {
+            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+        }
+        else if(dx <= 0 && dy >= 0)
+        {
+            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+        }
+        return line;
+    },
+    /*
     addPoint
     Adds a point at x,y
      */
@@ -73,10 +110,20 @@ var pathgen = {
             var a = pathgen.pointlist[pathgen.pointlist.length -2];
             var b = pathgen.pointlist[pathgen.pointlist.length -1];
 
+            var p1 = {
+                x:a.attr('cx'),
+                y:a.attr('cy')
+                };
 
-            var line = pathgen.paper.line(a.attr('cx'),a.attr('cy'),b.attr('cx'),b.attr('cy'));
+            var p2 = {
+                x:b.attr('cx'),
+            y:b.attr('cy')
+            };
+
+            var line = pathgen.createLine(p1,p2);
             line.parentPathGen = pathgen;
             pathgen.segmentlist.push(line);
+
         }
     },
 
@@ -90,19 +137,17 @@ var pathgen = {
             if(!e.defaultPrevented)
             {
                 pathgen.addPoint(e.offsetX, e.offsetY);
-                console.log("add point x: " + e.offsetX + " y: " + e.offsetY);
+
             }
-
-
         }
         else
         {
-            console.log("x: " + e.offsetX + " y: " + e.offsetY);
+
         }
     },
     pointClicked: function(e)
     {
-        console.log("point x: " + e.offsetX + " point y: " + e.offsetY);
+
         e.preventDefault();
     },
     pointDragStart: function(x,y,e)
@@ -127,6 +172,17 @@ var pathgen = {
                 avant = 0;
                 var a = this.parentPathGen.pointlist[avant];
                 var b = this.parentPathGen.pointlist[apres];
+
+                var p1 = {
+                    x:a.attr('cx'),
+                    y:a.attr('cy')
+                };
+
+                var p2 = {
+                    x:b.attr('cx'),
+                    y:b.attr('cy')
+                };
+
                 /*
                 The target segment is between 0'th and 1st point, so the first segment.
                  */
@@ -134,7 +190,7 @@ var pathgen = {
                 line.remove();
                 line.parentPathGen = null;
                 pathgen.segmentlist.splice(0,1);
-                var line = pathgen.paper.line(a.attr('cx'),a.attr('cy'),b.attr('cx'),b.attr('cy'));
+                line =  pathgen.createLine(p1,p2);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
             }
@@ -151,7 +207,6 @@ var pathgen = {
             {
 
                 var a = this.parentPathGen.pointlist[avant];
-
                 var b = this.parentPathGen.pointlist[apres];
                 /*
                 Two segments!
@@ -160,14 +215,36 @@ var pathgen = {
                 line.remove();
                 line.parentPathGen = null;
                 pathgen.segmentlist.splice(avant,1);
-                var line = pathgen.paper.line(a.attr('cx'),a.attr('cy'),this.attr('cx'),this.attr('cy'));
+
+                var p1 = {
+                    x:a.attr('cx'),
+                    y:a.attr('cy')
+                };
+
+                var p2 = {
+                    x:this.attr('cx'),
+                    y:this.attr('cy')
+                };
+
+                var line =  pathgen.createLine(p1,p2);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
-                var line = this.parentPathGen.segmentlist[avant+1];
+                line = this.parentPathGen.segmentlist[avant+1];
                 line.remove();
                 line.parentPathGen = null;
                 pathgen.segmentlist.splice(avant+1,1);
-                var line = pathgen.paper.line(this.attr('cx'),this.attr('cy'),b.attr('cx'),b.attr('cy'));
+
+                var pp1 = {
+                    x:this.attr('cx'),
+                    y:this.attr('cy')
+                };
+
+                var pp2 = {
+                    x:b.attr('cx'),
+                    y:b.attr('cy')
+                };
+
+                var line =  pathgen.createLine(pp1,pp2);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant+1,0,line);
             }
@@ -187,7 +264,18 @@ var pathgen = {
                 line.remove();
                 line.parentPathGen = null;
                 pathgen.segmentlist.splice(avant,1);
-                var line = pathgen.paper.line(a.attr('cx'),a.attr('cy'),b.attr('cx'),b.attr('cy'));
+
+                var p1 = {
+                    x:a.attr('cx'),
+                    y:a.attr('cy')
+                };
+
+                var p2 = {
+                    x:b.attr('cx'),
+                    y:b.attr('cy')
+                };
+
+                var line =  pathgen.createLine(p1,p2);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
             }
