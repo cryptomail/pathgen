@@ -1,83 +1,73 @@
-<!DOCTYPE html>
+<!--
+/*
+ Pathgen.html
+ Joshua Teitlebaum 4/8/2014
+ outputs JSON, takes in JSON for path representations
+*/
+
+ -->
 <html>
+    <head>
 
-  <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Pathgen : Generate / save paths mit der maus (I don&#39;t speak German)" />
+        <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+        <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+        <script src="javascriptss/raphael-min.js"></script>
+        <script src="javascripts/pathgen.js"></script>
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
+        <link rel="stylesheet" type="text/css" href="stylesheets/pathgen.css">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    </head>
+    <body>
+        <div id="main" class="main">
+        
+        </div>
+        <div id="simulator" class="simulator">
+        
+        </div>
+        <div id="inputarea" class="inputarea"> <textarea id="inputareatxt" style="width:100%;height:100%;"></textarea></div>
+        <div id="leftbar" class="leftbar">
+            
+        </div>
+        <div class="bottombar">
+            <form>
+                
+                <div id="delbutton" class="delbutton">del</div>
+                
+                
+                x: <input id="itemx" type="text" maxlength="4" size="4" ></input>
+                y:    <input id="itemy" type="text" maxlength="4" size="4" ></input>
+                re-ordinal:    <input id="itemordinal" type="text" maxlength="4" size="4" ></input>
+                rotation:    <input id="itemrotation" type="text" maxlength="4" size="4" ></input>
+                defaulttime: <input id="defaulttime" type="text" maxlength="4" size="4" value="5" ></input>
+                pathname: <input id="pathname" type="text" maxlength="25" size="15" value="" ></input>
+                <br>
+                screenwidth: <input id="screenwidth" type="text" maxlength="4" size="4" value="320" ></input>
+                screenheight: <input id="screenheight" type="text" maxlength="4" size="4" value="480" ></input>
+                <br/>
+                <div id="outputjson" class="outputjson">out</div>
+                <div id="inputjson" class="inputjson">in</div>
+                <div id="runsimulator" class="runsimulator">run</div>
+                <select id="pathnames" maxlength="25">
+                                    </select>
+               
+                
+            </form>
+        </div>
+        <div id="dialog-form" title="Time in segment">
+            
+            
+            <form>
+                <fieldset>
+                    <label for="name">time in seconds:</label>
+                    <input type="text" name="time" id="time" class="text ui-widget-content ui-corner-all" />
 
-    <title>Pathgen</title>
-  </head>
-
-  <body>
-
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/cryptomail/pathgen">View on GitHub</a>
-
-          <h1 id="project_title">Pathgen</h1>
-          <h2 id="project_tagline">Generate / save paths mit der maus (I don&#39;t speak German)</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/cryptomail/pathgen/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/cryptomail/pathgen/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a name="pathgen----create-save-and-play--paths-mit-der-maus" class="anchor" href="#pathgen----create-save-and-play--paths-mit-der-maus"><span class="octicon octicon-link"></span></a>Pathgen -- Create, save, and play  paths mit der maus</h3>
-
-<h6>
-<a name="disclaimer-i-dont-speak-german" class="anchor" href="#disclaimer-i-dont-speak-german"><span class="octicon octicon-link"></span></a>(Disclaimer, I don't speak German)</h6>
-
-<h3>
-<a name="i-want-you-to-be-able-to" class="anchor" href="#i-want-you-to-be-able-to"><span class="octicon octicon-link"></span></a>I want you to be able to:</h3>
-
-<ol>
-<li>create a canvas viewport</li>
-<li>rubber band path points</li>
-<li>delete a path point</li>
-<li>modify x/y of a path point</li>
-<li>select a path point and change its final orientation</li>
-<li>select two adjascent path points and change the time it takes to pass between them</li>
-<li>set global defaults for path points like changing the time it takes to pass between them, and orientation</li>
-<li>set img/sprite for running the simulation</li>
-<li>run simulation</li>
-<li>output to JSON for saving</li>
-</ol><h3>
-<a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>Todo:</h3>
-
-<ol>
-<li>implement rubber banding [ 03/09/2014 wait didn't I just do that! \o/ yay]</li>
-<li>consider using mvvm for stuff</li>
-<li>JSON editor for input/output</li>
-<li>resize</li>
-<li>put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects]</li>
-</ol><h3>
-<a name="progress" class="anchor" href="#progress"><span class="octicon octicon-link"></span></a>Progress:</h3>
-
-<ol>
-<li> 03/09/2014 I made rubber banding better on the balls.</li>
-</ol>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Pathgen maintained by <a href="https://github.com/cryptomail">cryptomail</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
+                </fieldset>
+            </form>
+        </div>
+<script>
+    pathgen.initialize("main")
+</script>
+    </body>
     
-
-  </body>
 </html>
+
