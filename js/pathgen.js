@@ -16,13 +16,84 @@ var pathgen = {
     default_circle_fillcolor: "red",
     default_circle_hoverincolor: "pink",
     pointCounter:0,
+
     /*
     Initializes pathgen object.
      */
 
+    setcssOfElement: function(css, target)
+    {
+        for(var prop in css) {
+            document.getElementById(target).style[prop] = css[prop];
+        }
+    },
+
+    sizePanels: function(mainwidth, mainheight)
+    {
+        var spacex = 10;
+        var spacey = 5;
+        var leftbar = document.getElementById("leftbar");
+
+        var leftbarcss =
+        {
+
+            "width":100,
+            "height":mainheight,
+            "border-style":"solid",
+            "border-width":"2px",
+            "overflow":"scroll"
+
+        };
+
+
+        this.setcssOfElement(leftbarcss,"leftbar");
+
+
+        var maincss =
+        {
+        "left":110,
+        "width":mainwidth,
+        "height":mainheight,
+        "border-style":"solid",
+        "border-width":2
+        };
+
+        var main = document.getElementById("main");
+        this.setcssOfElement(maincss,"main");
+
+
+        var inputarea = document.getElementById("inputarea");
+        var inputcss =
+        {
+
+
+            "left":leftbarcss.width + mainwidth + spacex + maincss["border-width"],
+            "width":mainwidth,
+            "height":mainheight,
+            "border-style":"solid",
+            "border-width":"2"
+        }
+
+        this.setcssOfElement(inputcss,"inputarea");
+
+        var bottomcss =
+        {
+
+            "width":leftbarcss.width + mainwidth*2  + maincss["border-width"]*2,
+            "height":100,
+            "border-style":"solid",
+            "border-width":"2"
+        }
+
+        this.setcssOfElement(bottomcss,"bottombar");
+
+
+
+
+
+    },
     initialize: function(htmlid)
     {
-
 
         if(!htmlid)
         {
@@ -65,6 +136,7 @@ var pathgen = {
     },
     createLine: function(p1,p2)
     {
+
         var lineangle = pathgen.lineAngle(p1,p2);
 
 
@@ -87,6 +159,8 @@ var pathgen = {
         {
             line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
+
+        this.sizePanels(480,500);
         return line;
     },
     /*
