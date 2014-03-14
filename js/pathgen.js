@@ -16,6 +16,8 @@ var pathgen = {
     default_circle_fillcolor: "red",
     default_circle_hoverincolor: "pink",
     pointCounter:0,
+    screenwidth:ko.observable(320),
+    screenheight:ko.observable(480),
 
     /*
     Initializes pathgen object.
@@ -34,6 +36,8 @@ var pathgen = {
         var spacey = 5;
         var leftbar = document.getElementById("leftbar");
 
+        mainwidth = parseInt(mainwidth);
+        mainheight = parseInt(mainheight);
         var leftbarcss =
         {
 
@@ -66,9 +70,8 @@ var pathgen = {
         var inputcss =
         {
 
-
             "left":leftbarcss.width + mainwidth + spacex + maincss["border-width"],
-            "width":mainwidth,
+            "width":320,
             "height":mainheight,
             "border-style":"solid",
             "border-width":"2"
@@ -79,7 +82,7 @@ var pathgen = {
         var bottomcss =
         {
 
-            "width":leftbarcss.width + mainwidth*2  + maincss["border-width"]*2,
+            "width":leftbarcss.width + mainwidth  + maincss["border-width"],
             "height":100,
             "border-style":"solid",
             "border-width":"2"
@@ -88,10 +91,16 @@ var pathgen = {
         this.setcssOfElement(bottomcss,"bottombar");
 
 
-
-
-
     },
+    requestScreenWidthChange: function(newval)
+    {
+        this.sizePanels(newval,this.screenheight());
+    },
+    requestScreenHeightChange: function(newval)
+    {
+        this.sizePanels(this.screenwidth(),newval);
+    },
+
     initialize: function(htmlid)
     {
 
@@ -107,6 +116,13 @@ var pathgen = {
         pathgen.paper = new Raphael(htmlid,"100%","100%");
 
         element.onclick = pathgen.onClickpaper;
+
+        this.sizePanels(this.screenwidth(),this.screenheight());
+
+        this.screenwidth.subscribe(this.requestScreenWidthChange,this);
+        this.screenheight.subscribe(this.requestScreenHeightChange,this);
+        ko.applyBindings(this);
+
     },
     /*
      pointHoverIn
@@ -160,7 +176,7 @@ var pathgen = {
             line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
 
-        this.sizePanels(480,500);
+
         return line;
     },
     /*
