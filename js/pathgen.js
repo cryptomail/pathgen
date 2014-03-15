@@ -22,7 +22,7 @@ var pathgen = {
     screenheight:ko.observable(480),
 
     /*
-    Initializes pathgen object.
+     Initializes pathgen object.
      */
 
     setcssOfElement: function(css, target)
@@ -57,11 +57,11 @@ var pathgen = {
 
         var maincss =
         {
-        "left":110,
-        "width":mainwidth,
-        "height":mainheight,
-        "border-style":"solid",
-        "border-width":2
+            "left":110,
+            "width":mainwidth,
+            "height":mainheight,
+            "border-style":"solid",
+            "border-width":2
         };
 
         var main = document.getElementById("main");
@@ -125,7 +125,7 @@ var pathgen = {
             pathgen.paper = new Raphael("main","100%","100%");
         }
 
-            element.onclick = pathgen.onClickpaper;
+        element.onclick = pathgen.onClickpaper;
     },
     initialize: function()
     {
@@ -143,13 +143,13 @@ var pathgen = {
     delClicked: function()
     {
         /*
-        For each point selected, delete the point
-        Then re-render the segments....tomorrow tired now :)
+         For each point selected, delete the point
+         Then re-render the segments....tomorrow tired now :)
          */
     },
     isSelected: function(p)
     {
-      return this.selectedPoints.indexOf(p) >= 0;
+        return this.selectedPoints.indexOf(p) >= 0;
     },
     /*
      pointHoverIn
@@ -175,7 +175,7 @@ var pathgen = {
 
 
     /*
-    line angle
+     line angle
      */
     lineAngle: function(p1,p2)
     {
@@ -214,8 +214,8 @@ var pathgen = {
         return line;
     },
     /*
-    addPoint
-    Adds a point at x,y
+     addPoint
+     Adds a point at x,y
      */
     addPoint: function(x,y)
     {
@@ -236,7 +236,7 @@ var pathgen = {
             var p1 = {
                 x:a.attr('cx'),
                 y:a.attr('cy')
-                };
+            };
 
             var p2 = {
                 x:b.attr('cx'),
@@ -251,7 +251,7 @@ var pathgen = {
     },
 
     /*
-    click handler for our canvas.  We'll put points here.
+     click handler for our canvas.  We'll put points here.
      */
     onClickpaper: function(e)
     {
@@ -341,7 +341,7 @@ var pathgen = {
                 };
 
                 /*
-                The target segment is between 0'th and 1st point, so the first segment.
+                 The target segment is between 0'th and 1st point, so the first segment.
                  */
                 var line = this.parentPathGen.segmentlist[0];
                 line.remove();
@@ -354,7 +354,7 @@ var pathgen = {
             else
             {
                 /*
-                Nothing to do, Tex! Nous sommes en seuls!
+                 Nothing to do, Tex! Nous sommes en seuls!
                  */
             }
         }
@@ -366,7 +366,7 @@ var pathgen = {
                 var a = this.parentPathGen.pointlist[avant];
                 var b = this.parentPathGen.pointlist[apres];
                 /*
-                Two segments!
+                 Two segments!
                  */
                 var line = this.parentPathGen.segmentlist[avant];
                 line.remove();
@@ -447,4 +447,3 @@ var pathgen = {
     }
 
 };
-
