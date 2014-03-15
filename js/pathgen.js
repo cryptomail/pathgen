@@ -225,6 +225,13 @@ var pathgen = {
          */
         var self = this;
         var traverselist = this.selectedPoints.slice(0);
+
+        traverselist.sort(
+            function(a,b)
+            {
+                return a.pointId < b.pointId;
+            }
+        );
         traverselist.forEach( function(item)
         {
         self._deletePoint(item);
@@ -309,7 +316,8 @@ var pathgen = {
         circle.hover(pathgen.pointHoverIn,pathgen.pointHoverOut,circle,circle);
         circle.pointId = pathgen.pointCounter;
         circle.parentPathGen = pathgen;
-        circle.pointCounter++;
+        pathgen.pointCounter++;
+        console.log("DEBUG: point counter " + circle.pointId)
         circle.attr("fill",pathgen.default_circle_fillcolor);
         circle.click(pathgen.pointClicked);
         pathgen.paper.set(circle).drag(pathgen.pointDragMove,pathgen.pointDragStart,pathgen.pointDragEnd);
@@ -469,7 +477,7 @@ var pathgen = {
                     y:this.attr('cy')
                 };
 
-                line =  pathgen.createLine(p1,p2);
+                line =  pathgen.createLine(p1,p2,a,this);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
                 line = this.parentPathGen.segmentlist[avant+1];
