@@ -10,51 +10,172 @@ var pathgen = {
     paper:null,
     pointlist: [],
     segmentlist: [],
+    selectedPoints:[],
     simulationmode:false,
     default_circle_radius:10,
     default_sqrt_radius:Math.sqrt(10),
     default_circle_fillcolor: "red",
     default_circle_hoverincolor: "pink",
+    default_circle_selectedcolor:"blue",
     pointCounter:0,
+    screenwidth:ko.observable(320),
+    screenheight:ko.observable(480),
+
     /*
-    Initializes pathgen object.
+     Initializes pathgen object.
      */
 
-    initialize: function(htmlid)
+    setcssOfElement: function(css, target)
+    {
+        for(var prop in css) {
+            document.getElementById(target).style[prop] = css[prop];
+        }
+    },
+
+    sizePanels: function(mainwidth, mainheight)
+    {
+        var spacex = 10;
+        var spacey = 5;
+        var leftbar = document.getElementById("leftbar");
+
+        mainwidth = parseInt(mainwidth);
+        mainheight = parseInt(mainheight);
+        var leftbarcss =
+        {
+
+            "width":100,
+            "height":mainheight,
+            "border-style":"solid",
+            "border-width":"2px",
+            "overflow":"scroll"
+
+        };
+
+
+        this.setcssOfElement(leftbarcss,"leftbar");
+
+
+        var maincss =
+        {
+            "left":110,
+            "width":mainwidth,
+            "height":mainheight,
+            "border-style":"solid",
+            "border-width":2
+        };
+
+        var main = document.getElementById("main");
+        this.setcssOfElement(maincss,"main");
+
+
+        var inputarea = document.getElementById("inputarea");
+        var inputcss =
+        {
+
+            "left":leftbarcss.width + mainwidth + spacex + maincss["border-width"],
+            "width":320,
+            "height":mainheight,
+            "border-style":"solid",
+            "border-width":"2"
+        }
+
+        this.setcssOfElement(inputcss,"inputarea");
+
+        var bottomcss =
+        {
+
+            "width":leftbarcss.width + mainwidth  + maincss["border-width"],
+            "height":100,
+            "border-style":"solid",
+            "border-width":"2"
+        }
+
+        this.setcssOfElement(bottomcss,"bottombar");
+
+        this._initCanvas();
+
+
+    },
+    requestScreenWidthChange: function(newval)
+    {
+        this.sizePanels(newval,this.screenheight());
+    },
+    requestScreenHeightChange: function(newval)
+    {
+        this.sizePanels(this.screenwidth(),newval);
+    },
+    _initCanvas: function()
     {
 
+        this.pointlist = [];
+        this.segmentlist = [];
 
-        if(!htmlid)
-        {
-            return;
-        }
-        var element = document.getElementById(htmlid);
+        var element = document.getElementById("main");
         if(!element)
         {
             return;
         }
-        pathgen.paper = new Raphael(htmlid,"100%","100%");
+        if(pathgen.paper)
+        {
+            pathgen.paper.clear();
+
+        }
+        else
+        {
+            pathgen.paper = new Raphael("main","100%","100%");
+        }
 
         element.onclick = pathgen.onClickpaper;
+    },
+    initialize: function()
+    {
+
+        this.sizePanels(this.screenwidth(),this.screenheight());
+
+        this.screenwidth.subscribe(this.requestScreenWidthChange,this);
+        this.screenheight.subscribe(this.requestScreenHeightChange,this);
+        ko.applyBindings(this);
+
+
+
+    },
+
+    delClicked: function()
+    {
+        /*
+         For each point selected, delete the point
+         Then re-render the segments....tomorrow tired now :)
+         */
+    },
+    isSelected: function(p)
+    {
+        return this.selectedPoints.indexOf(p) >= 0;
     },
     /*
      pointHoverIn
      */
     pointHoverIn: function(e,x,y)
     {
-        this.attr({fill:pathgen.default_circle_hoverincolor});
+        if(!this.parentPathGen.isSelected(this))
+        {
+            this.attr({fill:pathgen.default_circle_hoverincolor});
+        }
     },
     /*
      pointHoverOut
      */
     pointHoverOut: function(e,x,y)
     {
-        this.attr({fill:pathgen.default_circle_fillcolor});
+        if(!this.parentPathGen.isSelected(this))
+        {
+            this.attr({fill:pathgen.default_circle_fillcolor});
+        }
+
     },
 
 
     /*
-    line angle
+     line angle
      */
     lineAngle: function(p1,p2)
     {
@@ -65,6 +186,7 @@ var pathgen = {
     },
     createLine: function(p1,p2)
     {
+
         var lineangle = pathgen.lineAngle(p1,p2);
 
 
@@ -87,11 +209,13 @@ var pathgen = {
         {
             line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
+
+
         return line;
     },
     /*
-    addPoint
-    Adds a point at x,y
+     addPoint
+     Adds a point at x,y
      */
     addPoint: function(x,y)
     {
@@ -112,7 +236,7 @@ var pathgen = {
             var p1 = {
                 x:a.attr('cx'),
                 y:a.attr('cy')
-                };
+            };
 
             var p2 = {
                 x:b.attr('cx'),
@@ -127,7 +251,7 @@ var pathgen = {
     },
 
     /*
-    click handler for our canvas.  We'll put points here.
+     click handler for our canvas.  We'll put points here.
      */
     onClickpaper: function(e)
     {
@@ -136,8 +260,8 @@ var pathgen = {
             if(!e.defaultPrevented)
             {
                 pathgen.addPoint(e.offsetX, e.offsetY);
-
             }
+
         }
         else
         {
@@ -148,6 +272,40 @@ var pathgen = {
     {
 
         e.preventDefault();
+        if(e.altKey)
+        {
+            var n;
+
+            if((n=this.parentPathGen.selectedPoints.indexOf(this)) >= 0)
+            {
+                this.parentPathGen.selectedPoints.splice(n,1);
+                this.attr({fill:pathgen.default_circle_fillcolor});
+            }
+            else
+            {
+                this.parentPathGen.selectedPoints.push(this);
+                this.attr({fill:pathgen.default_circle_selectedcolor});
+            }
+
+        }
+        else
+        {
+            var select = true;
+            if(this.parentPathGen.selectedPoints.length == 1 && this.parentPathGen.selectedPoints[0] == this)
+            {
+                select = false;
+            }
+            this.parentPathGen.selectedPoints.forEach( function(item)
+            {
+                item.attr({fill:pathgen.default_circle_fillcolor});
+            });
+            this.parentPathGen.selectedPoints = [];
+            if(select)
+            {
+                this.parentPathGen.selectedPoints.push(this);
+                this.attr({fill:pathgen.default_circle_selectedcolor});
+            }
+        }
     },
     pointDragStart: function(x,y,e)
     {
@@ -183,7 +341,7 @@ var pathgen = {
                 };
 
                 /*
-                The target segment is between 0'th and 1st point, so the first segment.
+                 The target segment is between 0'th and 1st point, so the first segment.
                  */
                 var line = this.parentPathGen.segmentlist[0];
                 line.remove();
@@ -196,7 +354,7 @@ var pathgen = {
             else
             {
                 /*
-                Nothing to do, Tex! Nous sommes en seuls!
+                 Nothing to do, Tex! Nous sommes en seuls!
                  */
             }
         }
@@ -208,7 +366,7 @@ var pathgen = {
                 var a = this.parentPathGen.pointlist[avant];
                 var b = this.parentPathGen.pointlist[apres];
                 /*
-                Two segments!
+                 Two segments!
                  */
                 var line = this.parentPathGen.segmentlist[avant];
                 line.remove();
@@ -289,4 +447,3 @@ var pathgen = {
     }
 
 };
-
