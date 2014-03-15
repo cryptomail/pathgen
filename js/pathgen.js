@@ -35,7 +35,6 @@ var pathgen = {
     sizePanels: function(mainwidth, mainheight)
     {
         var spacex = 10;
-        var spacey = 5;
         var leftbar = document.getElementById("leftbar");
 
         mainwidth = parseInt(mainwidth);
@@ -77,7 +76,7 @@ var pathgen = {
             "height":mainheight,
             "border-style":"solid",
             "border-width":"2"
-        }
+        };
 
         this.setcssOfElement(inputcss,"inputarea");
 
@@ -88,7 +87,7 @@ var pathgen = {
             "height":100,
             "border-style":"solid",
             "border-width":"2"
-        }
+        };
 
         this.setcssOfElement(bottomcss,"bottombar");
 
@@ -140,12 +139,98 @@ var pathgen = {
 
     },
 
+    _deleteSegmentsFromPoint: function(c1)
+    {
+        var x;
+        for(x = this.segmentlist.length-1; x >= 0; x--)
+        {
+            if(this.segmentlist[x].c1 == c1)
+            {
+                this.segmentlist[x].remove();
+                this.segmentlist.splice(x,1);
+            }
+            else if(this.segmentlist[x].c2 == c1)
+            {
+                this.segmentlist[x].remove();
+                this.segmentlist.splice(x,1);
+            }
+        }
+    },
+    _deletePoint: function(item)
+    {
+        /*
+        1) find all segments related to point item
+        2) delete those segments
+        3) delete the point
+        4) rejoin before and after
+         */
+
+        var idx,avantidx, apresidx,avant,apres;
+
+        idx = this.pointlist.indexOf(item);
+        if(idx < 0)
+        {
+            return;
+        }
+        avantidx = idx - 1;
+        apresidx = idx + 1;
+
+        if(avantidx < 0)
+        {
+            avant = null;
+        }
+        else
+        {
+            avant = this.pointlist[avantidx];
+        }
+
+        if(apresidx < 0)
+        {
+            apres = null;
+        }
+        else
+        {
+            apres = this.pointlist[apresidx];
+        }
+
+        this._deleteSegmentsFromPoint(item);
+
+        item.remove();
+
+        this.pointlist.splice(idx,1);
+
+        if(avant != null && apres != null)
+        {
+            var p1 = {
+                x:avant.attr('cx'),
+                y:avant.attr('cy')
+            };
+
+            var p2 = {
+                x:apres.attr('cx'),
+                y:apres.attr('cy')
+            };
+
+            var line = pathgen.createLine(p1,p2,avant,apres);
+            line.parentPathGen = this;
+            this.segmentlist.push(line);
+        }
+
+    },
     delClicked: function()
     {
         /*
          For each point selected, delete the point
          Then re-render the segments....tomorrow tired now :)
          */
+        var self = this;
+        var traverselist = this.selectedPoints.slice(0);
+        traverselist.forEach( function(item)
+        {
+        self._deletePoint(item);
+        });
+        this.selectedPoints = [];
+
     },
     isSelected: function(p)
     {
@@ -184,7 +269,7 @@ var pathgen = {
         return -Math.atan2(yDiff, xDiff);
 
     },
-    createLine: function(p1,p2)
+    createLine: function(p1,p2,c1,c2)
     {
 
         var lineangle = pathgen.lineAngle(p1,p2);
@@ -210,7 +295,8 @@ var pathgen = {
             line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
 
-
+        line.c1 = c1;
+        line.c2 = c2;
         return line;
     },
     /*
@@ -243,7 +329,7 @@ var pathgen = {
                 y:b.attr('cy')
             };
 
-            var line = pathgen.createLine(p1,p2);
+            var line = pathgen.createLine(p1,p2,a,b);
             line.parentPathGen = pathgen;
             pathgen.segmentlist.push(line);
 
@@ -347,7 +433,7 @@ var pathgen = {
                 line.remove();
                 line.parentPathGen = null;
                 pathgen.segmentlist.splice(0,1);
-                line =  pathgen.createLine(p1,p2);
+                line =  pathgen.createLine(p1,p2,a,b);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
             }
@@ -383,7 +469,7 @@ var pathgen = {
                     y:this.attr('cy')
                 };
 
-                var line =  pathgen.createLine(p1,p2);
+                line =  pathgen.createLine(p1,p2);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
                 line = this.parentPathGen.segmentlist[avant+1];
@@ -401,7 +487,7 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                var line =  pathgen.createLine(pp1,pp2);
+                line =  pathgen.createLine(pp1,pp2,this,b);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant+1,0,line);
             }
@@ -432,7 +518,7 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                var line =  pathgen.createLine(p1,p2);
+                line =  pathgen.createLine(p1,p2,a,b);
                 line.parentPathGen = pathgen;
                 pathgen.segmentlist.splice(avant,0,line);
             }
