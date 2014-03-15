@@ -90,6 +90,8 @@ var pathgen = {
 
         this.setcssOfElement(bottomcss,"bottombar");
 
+        this._initCanvas();
+
 
     },
     requestScreenWidthChange: function(newval)
@@ -100,28 +102,39 @@ var pathgen = {
     {
         this.sizePanels(this.screenwidth(),newval);
     },
-
-    initialize: function(htmlid)
+    _initCanvas: function()
     {
 
-        if(!htmlid)
-        {
-            return;
-        }
-        var element = document.getElementById(htmlid);
+        this.pointlist = [];
+        this.segmentlist = [];
+
+        var element = document.getElementById("main");
         if(!element)
         {
             return;
         }
-        pathgen.paper = new Raphael(htmlid,"100%","100%");
+        if(pathgen.paper)
+        {
+            pathgen.paper.clear();
 
-        element.onclick = pathgen.onClickpaper;
+        }
+        else
+        {
+            pathgen.paper = new Raphael("main","100%","100%");
+        }
+
+            element.onclick = pathgen.onClickpaper;
+    },
+    initialize: function()
+    {
 
         this.sizePanels(this.screenwidth(),this.screenheight());
 
         this.screenwidth.subscribe(this.requestScreenWidthChange,this);
         this.screenheight.subscribe(this.requestScreenHeightChange,this);
         ko.applyBindings(this);
+
+
 
     },
     /*
@@ -226,8 +239,11 @@ var pathgen = {
             if(!e.defaultPrevented)
             {
                 pathgen.addPoint(e.offsetX, e.offsetY);
+                console.log("add point");
+
 
             }
+
         }
         else
         {
@@ -238,6 +254,7 @@ var pathgen = {
     {
 
         e.preventDefault();
+        console.log("default prevented sucka");
     },
     pointDragStart: function(x,y,e)
     {
