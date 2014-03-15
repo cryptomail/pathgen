@@ -16,10 +16,11 @@
 
 ###Todo:
 1. implement rubber banding [ 03/09/2014 wait didn't I just do that! \o/ yay]
-2. consider using mvvm for stuff
+2. consider using mvvm for stuff [ 3/14/2014 oh yeah baby...sorry @btford went with the supercharged water scooter but I still love your work :) ]
 3. JSON editor for input/output
-4. resize
-5. put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects]
+4. resize [done 3/14/2014 YAY PI DAY]
+5. put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects ]
+6. delete points
 
 ###Progress:
 1.  03/09/2014 I made rubber banding better on the balls.

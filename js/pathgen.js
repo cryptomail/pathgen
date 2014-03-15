@@ -10,11 +10,13 @@ var pathgen = {
     paper:null,
     pointlist: [],
     segmentlist: [],
+    selectedPoints:[],
     simulationmode:false,
     default_circle_radius:10,
     default_sqrt_radius:Math.sqrt(10),
     default_circle_fillcolor: "red",
     default_circle_hoverincolor: "pink",
+    default_circle_selectedcolor:"blue",
     pointCounter:0,
     screenwidth:ko.observable(320),
     screenheight:ko.observable(480),
@@ -137,19 +139,38 @@ var pathgen = {
 
 
     },
+
+    delClicked: function()
+    {
+        /*
+        For each point selected, delete the point
+        Then re-render the segments....tomorrow tired now :)
+         */
+    },
+    isSelected: function(p)
+    {
+      return this.selectedPoints.indexOf(p) >= 0;
+    },
     /*
      pointHoverIn
      */
     pointHoverIn: function(e,x,y)
     {
-        this.attr({fill:pathgen.default_circle_hoverincolor});
+        if(!this.parentPathGen.isSelected(this))
+        {
+            this.attr({fill:pathgen.default_circle_hoverincolor});
+        }
     },
     /*
      pointHoverOut
      */
     pointHoverOut: function(e,x,y)
     {
-        this.attr({fill:pathgen.default_circle_fillcolor});
+        if(!this.parentPathGen.isSelected(this))
+        {
+            this.attr({fill:pathgen.default_circle_fillcolor});
+        }
+
     },
 
 
@@ -251,7 +272,40 @@ var pathgen = {
     {
 
         e.preventDefault();
-        
+        if(e.altKey)
+        {
+            var n;
+
+            if((n=this.parentPathGen.selectedPoints.indexOf(this)) >= 0)
+            {
+                this.parentPathGen.selectedPoints.splice(n,1);
+                this.attr({fill:pathgen.default_circle_fillcolor});
+            }
+            else
+            {
+                this.parentPathGen.selectedPoints.push(this);
+                this.attr({fill:pathgen.default_circle_selectedcolor});
+            }
+
+        }
+        else
+        {
+            var select = true;
+            if(this.parentPathGen.selectedPoints.length == 1 && this.parentPathGen.selectedPoints[0] == this)
+            {
+                select = false;
+            }
+            this.parentPathGen.selectedPoints.forEach( function(item)
+            {
+                item.attr({fill:pathgen.default_circle_fillcolor});
+            });
+            this.parentPathGen.selectedPoints = [];
+            if(select)
+            {
+                this.parentPathGen.selectedPoints.push(this);
+                this.attr({fill:pathgen.default_circle_selectedcolor});
+            }
+        }
     },
     pointDragStart: function(x,y,e)
     {
