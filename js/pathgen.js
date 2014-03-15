@@ -239,9 +239,6 @@ var pathgen = {
             if(!e.defaultPrevented)
             {
                 pathgen.addPoint(e.offsetX, e.offsetY);
-                console.log("add point");
-
-
             }
 
         }
@@ -254,7 +251,7 @@ var pathgen = {
     {
 
         e.preventDefault();
-        console.log("default prevented sucka");
+        
     },
     pointDragStart: function(x,y,e)
     {
