@@ -9,7 +9,7 @@ Raphael.fn.line = function(startX, startY, endX, endY){
 var pathgen = {
     paper:null,
     pointlist: [],
-    segmentlist: [],
+    segmentlist: ko.observableArray(),
     selectedPoints:[],
     simulationmode:false,
     default_circle_radius:10,
@@ -42,7 +42,7 @@ var pathgen = {
         var leftbarcss =
         {
 
-            "width":100,
+            "width":150,
             "height":mainheight,
             "border-style":"solid",
             "border-width":"2px",
@@ -56,7 +56,7 @@ var pathgen = {
 
         var maincss =
         {
-            "left":110,
+            "left":leftbarcss.width + spacex,
             "width":mainwidth,
             "height":mainheight,
             "border-style":"solid",
@@ -107,7 +107,7 @@ var pathgen = {
     {
 
         this.pointlist = [];
-        this.segmentlist = [];
+        this.segmentlist.removeAll();
 
         var element = document.getElementById("main");
         if(!element)
@@ -136,7 +136,6 @@ var pathgen = {
         ko.applyBindings(pg);
 
 
-
     },
 
     _deleteSegmentsFromPoint: function(c1)
@@ -145,14 +144,14 @@ var pathgen = {
         var pg = this;
         for(x = pg.segmentlist.length-1; x >= 0; x--)
         {
-            if(pg.segmentlist[x].c1 == c1)
+            if(pg.segmentlist()[x].c1 == c1)
             {
-                pg.segmentlist[x].remove();
+                pg.segmentlist()[x].remove();
                 pg.segmentlist.splice(x,1);
             }
-            else if(pg.segmentlist[x].c2 == c1)
+            else if(pg.segmentlist()[x].c2 == c1)
             {
-                pg.segmentlist[x].remove();
+                pg.segmentlist()[x].remove();
                 pg.segmentlist.splice(x,1);
             }
         }
@@ -294,18 +293,19 @@ var pathgen = {
 
         line.c1 = c1;
         line.c2 = c2;
+        line.description = "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")";
         return line;
     },
     _rebuildSegments: function()
     {
 
         var pg = this;
-        pg.segmentlist.forEach( function(item)
+        pg.segmentlist().forEach( function(item)
         {
            item.remove();
         });
 
-        pg.segmentlist = [];
+        pg.segmentlist.removeAll();
         if(pg.pointlist.length > 1)
         {
             var n;
@@ -345,7 +345,7 @@ var pathgen = {
         circle.pointId = pg.pointCounter;
         circle.parentPathGen = pg;
         pg.pointCounter++;
-        console.log("DEBUG: point counter " + circle.pointId)
+
         circle.attr("fill",pg.default_circle_fillcolor);
         circle.click(pg.pointClicked);
         pg.paper.set(circle).drag(pg.pointDragMove,pg.pointDragStart,pg.pointDragEnd);
@@ -371,6 +371,7 @@ var pathgen = {
 
         }
     },
+
 
     /*
      click handler for our canvas.  We'll put points here.
@@ -467,7 +468,7 @@ var pathgen = {
                 /*
                  The target segment is between 0'th and 1st point, so the first segment.
                  */
-                var line = pg.segmentlist[0];
+                var line = pg.segmentlist()[0];
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(0,1);
@@ -492,7 +493,7 @@ var pathgen = {
                 /*
                  Two segments!
                  */
-                var line = pg.segmentlist[avant];
+                var line = pg.segmentlist()[avant];
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant,1);
@@ -510,7 +511,7 @@ var pathgen = {
                 line =  pg.createLine(p1,p2,a,this);
                 line.parentPathGen = pg;
                 pg.segmentlist.splice(avant,0,line);
-                line = pg.segmentlist[avant+1];
+                line = pg.segmentlist()[avant+1];
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant+1,1);
@@ -541,7 +542,7 @@ var pathgen = {
                 /*
                  The target segment is the same index as avant.
                  */
-                var line = pg.segmentlist[avant];
+                var line = pg.segmentlist()[avant];
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant,1);

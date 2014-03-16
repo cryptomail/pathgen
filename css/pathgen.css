@@ -121,7 +121,7 @@ div.inputarea
 div.leftbar
 {
 
-    width:100px;
+    width:150px;
     height:480px;
     border-style:solid;
     border-width:2px;
@@ -137,5 +137,14 @@ div.bottombar
     border-style:solid;
     border-width:2px;
 
+}
+td.description
+{
+    font-size: small;
+
+}
+tr:hover
+{
+    background-color: lightgreen;
 }
 

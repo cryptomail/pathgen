@@ -20,7 +20,8 @@
 3. JSON editor for input/output
 4. resize [done 3/14/2014 YAY PI DAY]
 5. put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects ]
-6. delete points
+6. delete points [done 3/15/2014]
+7. put segments in list
 
 ###Progress:
 1.  03/09/2014 I made rubber banding better on the balls.
