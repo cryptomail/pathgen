@@ -128,12 +128,12 @@ var pathgen = {
     },
     initialize: function()
     {
+        var pg = this;
+        pg.sizePanels(pg.screenwidth(),pg.screenheight());
 
-        this.sizePanels(this.screenwidth(),this.screenheight());
-
-        this.screenwidth.subscribe(this.requestScreenWidthChange,this);
-        this.screenheight.subscribe(this.requestScreenHeightChange,this);
-        ko.applyBindings(this);
+        pg.screenwidth.subscribe(pg.requestScreenWidthChange,pg);
+        pg.screenheight.subscribe(pg.requestScreenHeightChange,pg);
+        ko.applyBindings(pg);
 
 
 
@@ -142,17 +142,18 @@ var pathgen = {
     _deleteSegmentsFromPoint: function(c1)
     {
         var x;
-        for(x = this.segmentlist.length-1; x >= 0; x--)
+        var pg = this;
+        for(x = pg.segmentlist.length-1; x >= 0; x--)
         {
-            if(this.segmentlist[x].c1 == c1)
+            if(pg.segmentlist[x].c1 == c1)
             {
-                this.segmentlist[x].remove();
-                this.segmentlist.splice(x,1);
+                pg.segmentlist[x].remove();
+                pg.segmentlist.splice(x,1);
             }
-            else if(this.segmentlist[x].c2 == c1)
+            else if(pg.segmentlist[x].c2 == c1)
             {
-                this.segmentlist[x].remove();
-                this.segmentlist.splice(x,1);
+                pg.segmentlist[x].remove();
+                pg.segmentlist.splice(x,1);
             }
         }
     },
@@ -207,8 +208,8 @@ var pathgen = {
          For each point selected, delete the point
          Then re-render the segments....tomorrow tired now :)
          */
-        var self = this;
-        var traverselist = this.selectedPoints.slice(0);
+        var pg = this;
+        var traverselist = pg.selectedPoints.slice(0);
 
         traverselist.sort(
             function(a,b)
@@ -218,11 +219,11 @@ var pathgen = {
         );
         traverselist.forEach( function(item)
         {
-        self._deletePoint(item);
+        pg._deletePoint(item);
         });
 
-        self._rebuildSegments();
-        this.selectedPoints = [];
+        pg._rebuildSegments();
+        pg.selectedPoints = [];
 
     },
     isSelected: function(p)
@@ -234,9 +235,10 @@ var pathgen = {
      */
     pointHoverIn: function(e,x,y)
     {
-        if(!this.parentPathGen.isSelected(this))
+        var pg = this.parentPathGen;
+        if(!pg.isSelected(this))
         {
-            this.attr({fill:pathgen.default_circle_hoverincolor});
+            this.attr({fill:pg.default_circle_hoverincolor});
         }
     },
     /*
@@ -244,9 +246,10 @@ var pathgen = {
      */
     pointHoverOut: function(e,x,y)
     {
-        if(!this.parentPathGen.isSelected(this))
+        var pg = this.parentPathGen;
+        if(!pg.isSelected(this))
         {
-            this.attr({fill:pathgen.default_circle_fillcolor});
+            this.attr({fill:pg.default_circle_fillcolor});
         }
 
     },
@@ -265,27 +268,28 @@ var pathgen = {
     createLine: function(p1,p2,c1,c2)
     {
 
-        var lineangle = pathgen.lineAngle(p1,p2);
+        var pg = this;
+        var lineangle = pg.lineAngle(p1,p2);
 
 
-        var dx = Math.cos(lineangle) * pathgen.default_circle_radius;
-        var dy = Math.sin(lineangle) * pathgen.default_circle_radius;
+        var dx = Math.cos(lineangle) * pg.default_circle_radius;
+        var dy = Math.sin(lineangle) * pg.default_circle_radius;
         var line = null;
         if(dx >= 0 && dy >= 0)
         {
-            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
         else if(dx <=0 && dy <= 0)
         {
-            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
         else if(dx >=0 && dy <= 0)
         {
-            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
         else if(dx <= 0 && dy >= 0)
         {
-            line = pathgen.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
         }
 
         line.c1 = c1;
@@ -302,15 +306,15 @@ var pathgen = {
         });
 
         pg.segmentlist = [];
-        if(pathgen.pointlist.length > 1)
+        if(pg.pointlist.length > 1)
         {
             var n;
             var x;
-            n = pathgen.pointlist.length;
-            for(x=1; x < pathgen.pointlist.length; x++)
+            n = pg.pointlist.length;
+            for(x=1; x < pg.pointlist.length; x++)
             {
-                var a = pathgen.pointlist[x -1];
-                var b = pathgen.pointlist[x];
+                var a = pg.pointlist[x -1];
+                var b = pg.pointlist[x];
 
                 var p1 = {
                     x:a.attr('cx'),
@@ -322,9 +326,9 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                var line = pathgen.createLine(p1,p2,a,b);
-                line.parentPathGen = pathgen;
-                pathgen.segmentlist.push(line);
+                var line = pg.createLine(p1,p2,a,b);
+                line.parentPathGen = pg;
+                pg.segmentlist.push(line);
             }
 
         }
@@ -335,20 +339,21 @@ var pathgen = {
      */
     addPoint: function(x,y)
     {
-        var circle = pathgen.paper.circle(x,y,pathgen.default_circle_radius);
-        circle.hover(pathgen.pointHoverIn,pathgen.pointHoverOut,circle,circle);
-        circle.pointId = pathgen.pointCounter;
-        circle.parentPathGen = pathgen;
-        pathgen.pointCounter++;
+        var pg = this;
+        var circle = pg.paper.circle(x,y,pg.default_circle_radius);
+        circle.hover(pg.pointHoverIn,pg.pointHoverOut,circle,circle);
+        circle.pointId = pg.pointCounter;
+        circle.parentPathGen = pg;
+        pg.pointCounter++;
         console.log("DEBUG: point counter " + circle.pointId)
-        circle.attr("fill",pathgen.default_circle_fillcolor);
-        circle.click(pathgen.pointClicked);
-        pathgen.paper.set(circle).drag(pathgen.pointDragMove,pathgen.pointDragStart,pathgen.pointDragEnd);
-        pathgen.pointlist.push(circle);
-        if(pathgen.pointlist.length > 1)
+        circle.attr("fill",pg.default_circle_fillcolor);
+        circle.click(pg.pointClicked);
+        pg.paper.set(circle).drag(pg.pointDragMove,pg.pointDragStart,pg.pointDragEnd);
+        pg.pointlist.push(circle);
+        if(pg.pointlist.length > 1)
         {
-            var a = pathgen.pointlist[pathgen.pointlist.length -2];
-            var b = pathgen.pointlist[pathgen.pointlist.length -1];
+            var a = pg.pointlist[pg.pointlist.length -2];
+            var b = pg.pointlist[pg.pointlist.length -1];
 
             var p1 = {
                 x:a.attr('cx'),
@@ -360,9 +365,9 @@ var pathgen = {
                 y:b.attr('cy')
             };
 
-            var line = pathgen.createLine(p1,p2,a,b);
-            line.parentPathGen = pathgen;
-            pathgen.segmentlist.push(line);
+            var line = pg.createLine(p1,p2,a,b);
+            line.parentPathGen = pg;
+            pg.segmentlist.push(line);
 
         }
     },
@@ -388,39 +393,40 @@ var pathgen = {
     pointClicked: function(e)
     {
 
+        var pg = this.parentPathGen;
         e.preventDefault();
         if(e.altKey)
         {
             var n;
 
-            if((n=this.parentPathGen.selectedPoints.indexOf(this)) >= 0)
+            if((n=pg.selectedPoints.indexOf(this)) >= 0)
             {
-                this.parentPathGen.selectedPoints.splice(n,1);
-                this.attr({fill:pathgen.default_circle_fillcolor});
+                pg.selectedPoints.splice(n,1);
+                this.attr({fill:pg.default_circle_fillcolor});
             }
             else
             {
-                this.parentPathGen.selectedPoints.push(this);
-                this.attr({fill:pathgen.default_circle_selectedcolor});
+                pg.selectedPoints.push(this);
+                this.attr({fill:pg.default_circle_selectedcolor});
             }
 
         }
         else
         {
             var select = true;
-            if(this.parentPathGen.selectedPoints.length == 1 && this.parentPathGen.selectedPoints[0] == this)
+            if(pg.selectedPoints.length == 1 && pg.selectedPoints[0] == this)
             {
                 select = false;
             }
-            this.parentPathGen.selectedPoints.forEach( function(item)
+            pg.selectedPoints.forEach( function(item)
             {
-                item.attr({fill:pathgen.default_circle_fillcolor});
+                item.attr({fill:pg.default_circle_fillcolor});
             });
-            this.parentPathGen.selectedPoints = [];
+            pg.selectedPoints = [];
             if(select)
             {
-                this.parentPathGen.selectedPoints.push(this);
-                this.attr({fill:pathgen.default_circle_selectedcolor});
+                pg.selectedPoints.push(this);
+                this.attr({fill:pg.default_circle_selectedcolor});
             }
         }
     },
@@ -433,7 +439,8 @@ var pathgen = {
     pointDragMove: function(dx,dy)
     {
         this.attr({cx: this.ox + dx, cy: this.oy + dy});
-        var idx = this.parentPathGen.pointlist.indexOf(this);
+        var pg = this.parentPathGen;
+        var idx = pg.pointlist.indexOf(this);
         var avant = idx - 1;
         var apres = idx + 1;
 
@@ -441,11 +448,11 @@ var pathgen = {
         if(avant < 0)
         {
 
-            if(apres < this.parentPathGen.pointlist.length)
+            if(apres < pg.pointlist.length)
             {
                 avant = 0;
-                var a = this.parentPathGen.pointlist[avant];
-                var b = this.parentPathGen.pointlist[apres];
+                var a = pg.pointlist[avant];
+                var b = pg.pointlist[apres];
 
                 var p1 = {
                     x:a.attr('cx'),
@@ -460,13 +467,13 @@ var pathgen = {
                 /*
                  The target segment is between 0'th and 1st point, so the first segment.
                  */
-                var line = this.parentPathGen.segmentlist[0];
+                var line = pg.segmentlist[0];
                 line.remove();
                 line.parentPathGen = null;
-                pathgen.segmentlist.splice(0,1);
-                line =  pathgen.createLine(p1,p2,a,b);
-                line.parentPathGen = pathgen;
-                pathgen.segmentlist.splice(avant,0,line);
+                pg.segmentlist.splice(0,1);
+                line =  pg.createLine(p1,p2,a,b);
+                line.parentPathGen = pg;
+                pg.segmentlist.splice(avant,0,line);
             }
             else
             {
@@ -477,18 +484,18 @@ var pathgen = {
         }
         else  /* There are points before us */
         {
-            if(apres < this.parentPathGen.pointlist.length)
+            if(apres < pg.pointlist.length)
             {
 
-                var a = this.parentPathGen.pointlist[avant];
-                var b = this.parentPathGen.pointlist[apres];
+                var a = pg.pointlist[avant];
+                var b = pg.pointlist[apres];
                 /*
                  Two segments!
                  */
-                var line = this.parentPathGen.segmentlist[avant];
+                var line = pg.segmentlist[avant];
                 line.remove();
                 line.parentPathGen = null;
-                pathgen.segmentlist.splice(avant,1);
+                pg.segmentlist.splice(avant,1);
 
                 var p1 = {
                     x:a.attr('cx'),
@@ -500,13 +507,13 @@ var pathgen = {
                     y:this.attr('cy')
                 };
 
-                line =  pathgen.createLine(p1,p2,a,this);
-                line.parentPathGen = pathgen;
-                pathgen.segmentlist.splice(avant,0,line);
-                line = this.parentPathGen.segmentlist[avant+1];
+                line =  pg.createLine(p1,p2,a,this);
+                line.parentPathGen = pg;
+                pg.segmentlist.splice(avant,0,line);
+                line = pg.segmentlist[avant+1];
                 line.remove();
                 line.parentPathGen = null;
-                pathgen.segmentlist.splice(avant+1,1);
+                pg.segmentlist.splice(avant+1,1);
 
                 var pp1 = {
                     x:this.attr('cx'),
@@ -518,9 +525,9 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                line =  pathgen.createLine(pp1,pp2,this,b);
-                line.parentPathGen = pathgen;
-                pathgen.segmentlist.splice(avant+1,0,line);
+                line =  pg.createLine(pp1,pp2,this,b);
+                line.parentPathGen = pg;
+                pg.segmentlist.splice(avant+1,0,line);
             }
             else
             {
@@ -528,16 +535,16 @@ var pathgen = {
                  We're the last node on the chain!
                  It also means we're the last segment.
                  */
-                apres = this.parentPathGen.pointlist.length-1;
-                var a = this.parentPathGen.pointlist[avant];
-                var b = this.parentPathGen.pointlist[apres];
+                apres = pg.pointlist.length-1;
+                var a = pg.pointlist[avant];
+                var b = pg.pointlist[apres];
                 /*
                  The target segment is the same index as avant.
                  */
-                var line = this.parentPathGen.segmentlist[avant];
+                var line = pg.segmentlist[avant];
                 line.remove();
                 line.parentPathGen = null;
-                pathgen.segmentlist.splice(avant,1);
+                pg.segmentlist.splice(avant,1);
 
                 var p1 = {
                     x:a.attr('cx'),
@@ -549,9 +556,9 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                line =  pathgen.createLine(p1,p2,a,b);
+                line =  pg.createLine(p1,p2,a,b);
                 line.parentPathGen = pathgen;
-                pathgen.segmentlist.splice(avant,0,line);
+                pg.segmentlist.splice(avant,0,line);
             }
         }
 
