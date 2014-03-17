@@ -2,8 +2,10 @@
  * Created by joshuateitelbaum on 3/8/14.
  */
 "use strict";
-Raphael.fn.line = function(startX, startY, endX, endY){
-    return this.path('M' + startX + ' ' + startY + ' L' + endX + ' ' + endY);
+Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
+    var ps =  this.path('M' + startX + ' ' + startY + ' L' + endX + ' ' + endY);
+    ps.attr({"stroke-width":strokewidth});
+    return ps;
 };
 
 var pathgen = {
@@ -12,14 +14,18 @@ var pathgen = {
     segmentlist: ko.observableArray(),
     selectedPoints:[],
     simulationmode:false,
-    default_circle_radius:10,
+    default_circle_radius:5,
     default_sqrt_radius:Math.sqrt(10),
     default_circle_fillcolor: "red",
+    default_line_fillcolor: "black",
     default_circle_hoverincolor: "pink",
+    default_line_hoverincolor: "green",
     default_circle_selectedcolor:"blue",
     pointCounter:0,
     screenwidth:ko.observable(320),
     screenheight:ko.observable(480),
+    defaulttime:ko.observable(3),
+    linewidth:5,
 
     /*
      Initializes pathgen object.
@@ -252,7 +258,24 @@ var pathgen = {
         }
 
     },
+    lineHoverIn: function(e,x,y)
+    {
+        var pg = this.parentPathGen;
 
+        {
+            this.attr({stroke:pg.default_line_hoverincolor});
+        }
+    },
+
+    lineHoverOut: function(e,x,y)
+    {
+        var pg = this.parentPathGen;
+
+        {
+            this.attr({stroke:pg.default_line_fillcolor});
+        }
+
+    },
 
     /*
      line angle
@@ -276,24 +299,28 @@ var pathgen = {
         var line = null;
         if(dx >= 0 && dy >= 0)
         {
-            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy,pg.linewidth);
         }
         else if(dx <=0 && dy <= 0)
         {
-            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy,pg.linewidth);
         }
         else if(dx >=0 && dy <= 0)
         {
-            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy,pg.linewidth);
         }
         else if(dx <= 0 && dy >= 0)
         {
-            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy);
+            line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy,pg.linewidth);
         }
 
         line.c1 = c1;
         line.c2 = c2;
-        line.description = "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")";
+        line.intervaltime = pg.defaulttime();
+
+        line.description = "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")" + " :" + line.intervaltime + "s";
+
+        line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
         return line;
     },
     _rebuildSegments: function()
@@ -544,6 +571,7 @@ var pathgen = {
                  */
                 var line = pg.segmentlist()[avant];
                 line.remove();
+                console.log("line interval " + line.intervaltime)
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant,1);
 

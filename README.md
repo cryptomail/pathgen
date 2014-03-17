@@ -21,7 +21,8 @@
 4. resize [done 3/14/2014 YAY PI DAY]
 5. put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects ]
 6. delete points [done 3/15/2014]
-7. put segments in list
+7. put segments in list [done 3/16/2014]
+8. need to have panel for interval between points (on segments)
 
 ###Progress:
 1.  03/09/2014 I made rubber banding better on the balls.
