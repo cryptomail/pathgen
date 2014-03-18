@@ -142,6 +142,7 @@ var pathgen = {
         ko.applyBindings(pg);
 
 
+
     },
 
     _deleteSegmentsFromPoint: function(c1)
@@ -261,7 +262,7 @@ var pathgen = {
     lineHoverIn: function(e,x,y)
     {
         var pg = this.parentPathGen;
-
+        if(this && pg)
         {
             this.attr({stroke:pg.default_line_hoverincolor});
         }
@@ -270,7 +271,7 @@ var pathgen = {
     lineHoverOut: function(e,x,y)
     {
         var pg = this.parentPathGen;
-
+        if(this && pg)
         {
             this.attr({stroke:pg.default_line_fillcolor});
         }
@@ -287,7 +288,7 @@ var pathgen = {
         return -Math.atan2(yDiff, xDiff);
 
     },
-    createLine: function(p1,p2,c1,c2)
+    createLine: function(p1,p2,c1,c2,intervaltime)
     {
 
         var pg = this;
@@ -316,12 +317,29 @@ var pathgen = {
 
         line.c1 = c1;
         line.c2 = c2;
-        line.intervaltime = pg.defaulttime();
+        line.intervaltime = intervaltime? intervaltime : pg.defaulttime();
 
         line.description = "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")" + " :" + line.intervaltime + "s";
 
         line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
+        line.click(pg.lineClicked);
         return line;
+    },
+    lineClicked: function(e)
+    {
+        
+        e.preventDefault();
+        document.getElementById("dialog-form-time").style.visibility="visible";
+        $('#dialog-time').keypress(function(e) {
+        if (e.keyCode == $.ui.keyCode.ENTER) {
+            console.log("HI THERE");
+            $(this).dialog("close");
+            e.preventDefault();
+            return false;
+        }
+        });
+        $("#dialog-time").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); } } ] });
+        
     },
     _rebuildSegments: function()
     {
@@ -496,10 +514,12 @@ var pathgen = {
                  The target segment is between 0'th and 1st point, so the first segment.
                  */
                 var line = pg.segmentlist()[0];
+                var intervaltime = line.intervaltime;
+                
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(0,1);
-                line =  pg.createLine(p1,p2,a,b);
+                line =  pg.createLine(p1,p2,a,b,intervaltime);
                 line.parentPathGen = pg;
                 pg.segmentlist.splice(avant,0,line);
             }
@@ -521,6 +541,7 @@ var pathgen = {
                  Two segments!
                  */
                 var line = pg.segmentlist()[avant];
+                var intervaltime = line.intervaltime;
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant,1);
@@ -535,10 +556,11 @@ var pathgen = {
                     y:this.attr('cy')
                 };
 
-                line =  pg.createLine(p1,p2,a,this);
+                line =  pg.createLine(p1,p2,a,this,intervaltime);
                 line.parentPathGen = pg;
                 pg.segmentlist.splice(avant,0,line);
                 line = pg.segmentlist()[avant+1];
+                intervaltime = line.intervaltime;
                 line.remove();
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant+1,1);
@@ -553,7 +575,7 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                line =  pg.createLine(pp1,pp2,this,b);
+                line =  pg.createLine(pp1,pp2,this,b,intervaltime);
                 line.parentPathGen = pg;
                 pg.segmentlist.splice(avant+1,0,line);
             }
@@ -570,8 +592,9 @@ var pathgen = {
                  The target segment is the same index as avant.
                  */
                 var line = pg.segmentlist()[avant];
+                var intervaltime = line.intervaltime;
                 line.remove();
-                console.log("line interval " + line.intervaltime)
+                
                 line.parentPathGen = null;
                 pg.segmentlist.splice(avant,1);
 
@@ -585,7 +608,7 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                line =  pg.createLine(p1,p2,a,b);
+                line =  pg.createLine(p1,p2,a,b,intervaltime);
                 line.parentPathGen = pathgen;
                 pg.segmentlist.splice(avant,0,line);
             }

@@ -13,10 +13,11 @@
 
         <script src="js/raphael-min.js"></script>
         <script src="js/knockout-3.1.0.js"></script>
-        <script src="js/pathgen.js"></script>
-
-        <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.1/themes/base/jquery-ui.css" />
         <link rel="stylesheet" type="text/css" href="css/pathgen.css">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+        <script src="//code.jquery.com/jquery-1.9.1.js"></script>
+        <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+        <script src="js/pathgen.js"></script>
 
     </head>
 
@@ -64,13 +65,13 @@
                 
             </form>
         </div>
-        <div id="dialog-form" title="Time in segment">
+        <div  id="dialog-time" title="Time in segment">
 
 
-            <form>
+            <form id="dialog-form-time" style="visibility:hidden">
                 <fieldset>
-                    <label for="name">time in seconds:</label>
-                    <input type="text" name="time" id="time" class="text ui-widget-content ui-corner-all" />
+                    <label for="time">time in seconds:</label>
+                    <input type="text" data-bind="value: defaulttime" name="defaulttime" id="time" class="text ui-widget-content ui-corner-all" />
 
                 </fieldset>
             </form>
@@ -78,6 +79,7 @@
 <script>
 
     pathgen.initialize();
+    
 </script>
     </body>
     
