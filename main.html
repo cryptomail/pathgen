@@ -13,11 +13,15 @@
 
         <script src="js/raphael-min.js"></script>
         <script src="js/knockout-3.1.0.js"></script>
+        <script type="text/javascript" src="jsoneditor/jsoneditor-min.js"></script>
         <link rel="stylesheet" type="text/css" href="css/pathgen.css">
         <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" type="text/css" href="jsoneditor/jsoneditor-min.css">
         <script src="//code.jquery.com/jquery-1.9.1.js"></script>
         <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
         <script src="js/pathgen.js"></script>
+        
+        
 
     </head>
 
@@ -25,10 +29,16 @@
         <div id="main" class="main">
         
         </div>
-        <div id="simulator" class="simulator">
+
         
+        
+     <div id="simulator" class="simulator">
+
+         
         </div>
-        <div id="inputarea" class="inputarea"> <textarea id="inputareatxt" style="width:100%;height:100%;"></textarea></div>
+        <div id="outereditor" class="inputarea">
+      <div id="jsoneditor"  width="100%" height="100%"> </div>
+        </div>
 
         <div id="leftbar" class="leftbar">
             <table>
@@ -41,6 +51,8 @@
                 </tbody>
             </table>
         </div>
+        
+
         <div id="bottombar" class="bottombar">
             <form>
                 
@@ -55,9 +67,11 @@
                 <br>
                 screenwidth: <input data-bind="value: screenwidth" id="screenwidth" type="text" maxlength="4" size="4"  ></input>
                 screenheight: <input data-bind="value: screenheight" id="screenheight" type="text" maxlength="4" size="4"  ></input>
-                <br/>
                 <div id="outputjson" class="outputjson">out</div>
-                <div id="inputjson" class="inputjson">in</div>
+-                <div id="inputjson" class="inputjson">in</div>
+                <br/>
+                
+                
                 <div id="runsimulator" class="runsimulator">run</div>
                 <select id="pathnames" maxlength="25">
                                     </select>

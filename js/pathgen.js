@@ -26,6 +26,7 @@ var pathgen = {
     screenheight:ko.observable(480),
     defaulttime:ko.observable(3),
     linewidth:5,
+    editor:null,
 
     /*
      Initializes pathgen object.
@@ -37,7 +38,11 @@ var pathgen = {
             document.getElementById(target).style[prop] = css[prop];
         }
     },
-
+    removeElement: function(id)
+    {
+        var elem;
+        return (elem=document.getElementById(id)).parentNode.removeChild(elem);
+    },
     sizePanels: function(mainwidth, mainheight)
     {
         var spacex = 10;
@@ -73,18 +78,19 @@ var pathgen = {
         this.setcssOfElement(maincss,"main");
 
 
-        var inputarea = document.getElementById("inputarea");
+        var inputarea = document.getElementById("outereditor");
         var inputcss =
         {
 
+            "top":8,
             "left":leftbarcss.width + mainwidth + spacex + maincss["border-width"],
-            "width":320,
+            "width":400,
             "height":mainheight,
             "border-style":"solid",
             "border-width":"2"
         };
 
-        this.setcssOfElement(inputcss,"inputarea");
+        this.setcssOfElement(inputcss,"outereditor");
 
         var bottomcss =
         {
@@ -98,6 +104,29 @@ var pathgen = {
         this.setcssOfElement(bottomcss,"bottombar");
 
         this._initCanvas();
+
+        if(this.editor)
+        {
+            var container = document.getElementById("outereditor");
+            var edold = document.getElementById("jsoneditor");
+            var style = edold.style;
+            this.removeElement("jsoneditor");
+            var e = document.createElement("div");
+            e.id = "jsoneditor";
+            e.style = style;
+            container.appendChild(e);
+            
+        }
+        var container = document.getElementById("jsoneditor");
+        var options = {
+        mode: 'code',
+        modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
+        error: function (err) {
+          alert(err.toString());
+        }
+  };
+        
+        this.editor = new jsoneditor.JSONEditor(container,options);
 
 
     },
