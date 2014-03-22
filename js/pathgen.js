@@ -25,6 +25,7 @@ var pathgen = {
     screenwidth:ko.observable(320),
     screenheight:ko.observable(480),
     defaulttime:ko.observable(3),
+    pathName:ko.observable(""),
     linewidth:5,
     editor:null,
 
@@ -346,6 +347,8 @@ var pathgen = {
 
         line.c1 = c1;
         line.c2 = c2;
+        line.p1 = p1;
+        line.p2 = p2;
         line.intervaltime = intervaltime? intervaltime : pg.defaulttime();
 
         line.description = "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")" + " :" + line.intervaltime + "s";
@@ -649,6 +652,40 @@ var pathgen = {
     {
         e.preventDefault();
 
+    },
+    _pathToJSON: function()
+    {
+        var obj = {};
+        obj.pathName = this.pathName();
+        obj.screenWidth = this.screenwidth();
+        obj.screenHeight = this.screenheight();
+        obj.defaultInterval = this.defaulttime()  + "";
+        obj.segmentList = [];
+
+        this.segmentlist().forEach( 
+            function(i)
+            {
+                var seg;
+                seg = {};
+                seg.p1 = i.p1;
+                seg.p2 = i.p2;
+                seg.intervalTime = i.intervaltime + "";
+                obj.segmentList.push(seg);
+            }
+        );
+
+        return obj;
+    },
+    onOutputJSON: function()
+    {
+        var self = this;
+        var obj = self._pathToJSON();
+
+        self.editor.set(obj);
+    },
+    onInputJSON: function()
+    {
+        alert('hi');
     }
 
 };

@@ -63,11 +63,11 @@
 
                 rotation:    <input id="itemrotation" type="text" maxlength="4" size="4" ></input>
                 defaulttime: <input  data-bind="value: defaulttime" id="defaulttime" type="text" maxlength="4" size="4" ></input>
-                pathname: <input id="pathname" type="text" maxlength="25" size="15" value="" ></input>
+                pathname: <input data-bind="value: pathName" id="pathname" type="text" maxlength="25" size="15" value="" ></input>
                 <br>
                 screenwidth: <input data-bind="value: screenwidth" id="screenwidth" type="text" maxlength="4" size="4"  ></input>
                 screenheight: <input data-bind="value: screenheight" id="screenheight" type="text" maxlength="4" size="4"  ></input>
-                <div id="outputjson" class="outputjson">out</div>
+                <div  id="outputjson" class="outputjson">out</div>
 -                <div id="inputjson" class="inputjson">in</div>
                 <br/>
                 
@@ -93,6 +93,8 @@
 <script>
 
     pathgen.initialize();
+    document.getElementById('outputjson').addEventListener('click', function(){pathgen.onOutputJSON()}, false);
+    document.getElementById('inputjson').addEventListener('click', function(){pathgen.onInputJSON()} ,false);
     
 </script>
     </body>
