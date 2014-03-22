@@ -181,12 +181,12 @@ var pathgen = {
         var pg = this;
         for(x = pg.segmentlist.length-1; x >= 0; x--)
         {
-            if(pg.segmentlist()[x].c1 == c1)
+            if(pg.segmentlist()[x].data("c1") == c1)
             {
                 pg.segmentlist()[x].remove();
                 pg.segmentlist.splice(x,1);
             }
-            else if(pg.segmentlist()[x].c2 == c1)
+            else if(pg.segmentlist()[x].data("c2") == c1)
             {
                 pg.segmentlist()[x].remove();
                 pg.segmentlist.splice(x,1);
@@ -250,7 +250,7 @@ var pathgen = {
         traverselist.sort(
             function(a,b)
             {
-                return a.pointId < b.pointId;
+                return a.data("pointId") < b.data("pointId");
             }
         );
         traverselist.forEach( function(item)
@@ -271,7 +271,7 @@ var pathgen = {
      */
     pointHoverIn: function(e,x,y)
     {
-        var pg = this.parentPathGen;
+        var pg = this.data("parentPathGen");
         if(!pg.isSelected(this))
         {
             this.attr({fill:pg.default_circle_hoverincolor});
@@ -282,7 +282,7 @@ var pathgen = {
      */
     pointHoverOut: function(e,x,y)
     {
-        var pg = this.parentPathGen;
+        var pg = this.data("parentPathGen");
         if(!pg.isSelected(this))
         {
             this.attr({fill:pg.default_circle_fillcolor});
@@ -291,7 +291,7 @@ var pathgen = {
     },
     lineHoverIn: function(e,x,y)
     {
-        var pg = this.parentPathGen;
+        var pg = this.data("parentPathGen");
         if(this && pg)
         {
             this.attr({stroke:pg.default_line_hoverincolor});
@@ -300,7 +300,7 @@ var pathgen = {
 
     lineHoverOut: function(e,x,y)
     {
-        var pg = this.parentPathGen;
+        var pg = this.data("parentPathGen");
         if(this && pg)
         {
             this.attr({stroke:pg.default_line_fillcolor});
@@ -318,10 +318,9 @@ var pathgen = {
         return -Math.atan2(yDiff, xDiff);
 
     },
-    createLine: function(p1,p2,c1,c2,intervaltime)
+    createLine: function(p1,p2,c1,c2,intervaltime,pg)
     {
 
-        var pg = this;
         var lineangle = pg.lineAngle(p1,p2);
 
 
@@ -345,32 +344,64 @@ var pathgen = {
             line = pg.paper.line(p1.x+dx,p1.y-dy,p2.x-dx,p2.y+dy,pg.linewidth);
         }
 
-        line.c1 = c1;
-        line.c2 = c2;
-        line.p1 = p1;
-        line.p2 = p2;
-        line.intervaltime = intervaltime? intervaltime : pg.defaulttime();
+        line.data("c1",c1);
+        line.data("c2",c2);
+        line.data("p1",p1);
+        line.data("p2",p2);
+        line.data("intervaltime",intervaltime? intervaltime : pg.defaulttime());
 
-        line.description = "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")" + " :" + line.intervaltime + "s";
+        line.data("description", "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")" + " :" + line.data("intervaltime") + "s");
 
         line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
         line.click(pg.lineClicked);
+        line.data("parentPathGen",pg);
         return line;
+    },
+    _linePanelOK: function(currentline)
+    {
+        currentline.data("intervaltime",currentline.data("parentPathGen").defaulttime());
+        currentline.data("description", "(" + currentline.data("p1").x + "," + currentline.data("p1").y + ")" + "," + "(" + currentline.data("p2").x + "," + currentline.data("p2").y + ")" + " :" + currentline.data("intervaltime") + "s");
+        var elmtTable = document.getElementById('leftbarbody');
+        var tableRows = elmtTable.getElementsByTagName('tr');
+        var rowCount = tableRows.length;
+        for (var x=rowCount-1; x>0; x--) {
+          elmtTable.removeChild(tableRows[x]);
+        }
+        var alist = elmtTable.getElementsByTagName("td");
+        if(alist != null && alist.length > 0)
+        {
+            var x,n;
+            n = alist.length;
+            for(x=0; x < n; x++)
+            {
+               alist[x].innerHTML='';
+            }
+              
+        }
+        ko.cleanNode(document.getElementById("leftbar"));
+        ko.applyBindings(currentline.data("parentPathGen"), document.getElementById("leftbar"));
     },
     lineClicked: function(e)
     {
-        
+        var currentline;
+        currentline = this;
         e.preventDefault();
         document.getElementById("dialog-form-time").style.visibility="visible";
         $('#dialog-time').keypress(function(e) {
         if (e.keyCode == $.ui.keyCode.ENTER) {
-            console.log("HI THERE");
+            
             $(this).dialog("close");
             e.preventDefault();
+            if(currentline && currentline.data("parentPathGen"))
+            {
+                currentline.data("parentPathGen")._linePanelOK(currentline);
+
+                currentline = null;
+            }
             return false;
         }
         });
-        $("#dialog-time").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); } } ] });
+        $("#dialog-time").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); if(currentline){currentline.data("parentPathGen")._linePanelOK(currentline);}} } ] });
         
     },
     _rebuildSegments: function()
@@ -403,8 +434,8 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                var line = pg.createLine(p1,p2,a,b);
-                line.parentPathGen = pg;
+                var line = pg.createLine(p1,p2,a,b,null,pg);
+                
                 pg.segmentlist.push(line);
             }
 
@@ -419,8 +450,8 @@ var pathgen = {
         var pg = this;
         var circle = pg.paper.circle(x,y,pg.default_circle_radius);
         circle.hover(pg.pointHoverIn,pg.pointHoverOut,circle,circle);
-        circle.pointId = pg.pointCounter;
-        circle.parentPathGen = pg;
+        circle.data("pointId",pg.pointCounter);
+        circle.data("parentPathGen",pg);
         pg.pointCounter++;
 
         circle.attr("fill",pg.default_circle_fillcolor);
@@ -442,8 +473,8 @@ var pathgen = {
                 y:b.attr('cy')
             };
 
-            var line = pg.createLine(p1,p2,a,b);
-            line.parentPathGen = pg;
+            var line = pg.createLine(p1,p2,a,b,null,pg);
+            
             pg.segmentlist.push(line);
 
         }
@@ -471,7 +502,7 @@ var pathgen = {
     pointClicked: function(e)
     {
 
-        var pg = this.parentPathGen;
+        var pg = this.data("parentPathGen");
         e.preventDefault();
         if(e.altKey)
         {
@@ -517,7 +548,7 @@ var pathgen = {
     pointDragMove: function(dx,dy)
     {
         this.attr({cx: this.ox + dx, cy: this.oy + dy});
-        var pg = this.parentPathGen;
+        var pg = this.data("parentPathGen");
         var idx = pg.pointlist.indexOf(this);
         var avant = idx - 1;
         var apres = idx + 1;
@@ -546,13 +577,14 @@ var pathgen = {
                  The target segment is between 0'th and 1st point, so the first segment.
                  */
                 var line = pg.segmentlist()[0];
-                var intervaltime = line.intervaltime;
+                var intervaltime = line.data("intervaltime");
                 
                 line.remove();
-                line.parentPathGen = null;
+                line.click(null);
+                
                 pg.segmentlist.splice(0,1);
-                line =  pg.createLine(p1,p2,a,b,intervaltime);
-                line.parentPathGen = pg;
+                line =  pg.createLine(p1,p2,a,b,intervaltime,pg);
+                
                 pg.segmentlist.splice(avant,0,line);
             }
             else
@@ -573,9 +605,9 @@ var pathgen = {
                  Two segments!
                  */
                 var line = pg.segmentlist()[avant];
-                var intervaltime = line.intervaltime;
+                var intervaltime = line.data("intervaltime");
                 line.remove();
-                line.parentPathGen = null;
+                
                 pg.segmentlist.splice(avant,1);
 
                 var p1 = {
@@ -588,13 +620,13 @@ var pathgen = {
                     y:this.attr('cy')
                 };
 
-                line =  pg.createLine(p1,p2,a,this,intervaltime);
-                line.parentPathGen = pg;
+                line =  pg.createLine(p1,p2,a,this,intervaltime,pg);
+                
                 pg.segmentlist.splice(avant,0,line);
                 line = pg.segmentlist()[avant+1];
-                intervaltime = line.intervaltime;
+                intervaltime = line.data("intervaltime");
                 line.remove();
-                line.parentPathGen = null;
+                
                 pg.segmentlist.splice(avant+1,1);
 
                 var pp1 = {
@@ -607,8 +639,8 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                line =  pg.createLine(pp1,pp2,this,b,intervaltime);
-                line.parentPathGen = pg;
+                line =  pg.createLine(pp1,pp2,this,b,intervaltime,pg);
+                
                 pg.segmentlist.splice(avant+1,0,line);
             }
             else
@@ -627,7 +659,6 @@ var pathgen = {
                 var intervaltime = line.intervaltime;
                 line.remove();
                 
-                line.parentPathGen = null;
                 pg.segmentlist.splice(avant,1);
 
                 var p1 = {
@@ -640,8 +671,8 @@ var pathgen = {
                     y:b.attr('cy')
                 };
 
-                line =  pg.createLine(p1,p2,a,b,intervaltime);
-                line.parentPathGen = pathgen;
+                line =  pg.createLine(p1,p2,a,b,intervaltime,pg);
+                
                 pg.segmentlist.splice(avant,0,line);
             }
         }
@@ -667,9 +698,9 @@ var pathgen = {
             {
                 var seg;
                 seg = {};
-                seg.p1 = i.p1;
-                seg.p2 = i.p2;
-                seg.intervalTime = i.intervaltime + "";
+                seg.p1 = i.data("p1");
+                seg.p2 = i.data("p2");
+                seg.intervalTime = i.data("intervaltime") + "";
                 obj.segmentList.push(seg);
             }
         );
@@ -683,9 +714,49 @@ var pathgen = {
 
         self.editor.set(obj);
     },
+    _pathFromJSON: function(obj)
+    {
+        var self = this;
+        self.paper.clear();
+        self.pathName(obj.pathName);
+        self.screenheight(obj.screenheight);
+        self.screenwidth(obj.screenwidth);
+        self.defaulttime(obj.defaultInterval);
+        var lastpoint = 0;
+        self.segmentlist([]);
+        self.pointlist=[];
+        obj.segmentList.forEach( 
+            
+            function(e,i,arr)
+            {
+                if(i==0)
+                {
+                    self.addPoint(e.p1.x,e.p1.y);
+                    self.addPoint(e.p2.x,e.p2.y);
+                }
+                else if(i+1 <= arr.length)
+                {
+                    if(lastpoint % 2 === 0)
+                    {
+                        self.addPoint(e.p1.x,e.p1.y);
+                    }
+                    else
+                    {
+                        self.addPoint(e.p2.x,e.p2.y);
+                        lastpoint++;
+                    }
+                }
+                
+                
+                lastpoint++;
+               
+            }
+            );
+    },
     onInputJSON: function()
     {
-        alert('hi');
+        var self = this;
+        self._pathFromJSON(self.editor.get());
     }
 
 };

@@ -41,11 +41,11 @@
         </div>
 
         <div id="leftbar" class="leftbar">
-            <table>
-                <tbody data-bind="foreach: segmentlist">
+            <table id="leftbartable">
+                <tbody id="leftbarbody" data-bind="foreach: segmentlist">
                 <tr>
 
-                    <td class="description" data-bind="text: description"></td>
+                    <td class="description" data-bind="text: data('description')"></td>
 
                 </tr>
                 </tbody>
