@@ -184,8 +184,8 @@ var pathgen = {
             self._pathFromJSON(obj);
             self.editor.set(obj);
         }
+        
         self.pathName(pathvalue);
-
     },
     _setbgImg: function(path)
     {
@@ -400,6 +400,10 @@ var pathgen = {
         line.data("parentPathGen",pg);
         return line;
     },
+    _rotationPanelOK: function(rotation)
+    {
+
+    },
     _linePanelOK: function(currentline)
     {
         currentline.data("intervaltime",currentline.data("parentPathGen").defaulttime());
@@ -499,6 +503,7 @@ var pathgen = {
 
         circle.attr("fill",pg.default_circle_fillcolor);
         circle.click(pg.pointClicked);
+        circle.dblclick(pg.pointDoubleClicked);
         pg.paper.set(circle).drag(pg.pointDragMove,pg.pointDragStart,pg.pointDragEnd);
         pg.pointlist.push(circle);
         if(pg.pointlist.length > 1)
@@ -541,6 +546,29 @@ var pathgen = {
         {
 
         }
+    },
+    pointDoubleClicked: function(e)
+    {
+        var currentpoint;
+        currentpoint = this;
+        e.preventDefault();
+        document.getElementById("dialog-form-rotation").style.visibility="visible";
+        $('#dialog-rotation').keypress(function(e) {
+        if (e.keyCode == $.ui.keyCode.ENTER) {
+            
+            $(this).dialog("close");
+            e.preventDefault();
+            if(currentpoint && currentline.data("parentPathGen"))
+            {
+                currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);
+
+                currentpoint = null;
+            }
+            return false;
+        }
+        });
+        $("#dialog-rotation").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); if(currentpoint){currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);}} } ] });
+        
     },
     pointClicked: function(e)
     {
@@ -824,6 +852,11 @@ var pathgen = {
         self.defaulttime(obj.defaultInterval);
         self.defaultrotation(obj.defaultRotation);
         this.rect = this.paper.rect(0,0,this.screenwidth(),this.screenheight());
+        var already = false;
+        if(self.bgimg() == obj.bgImg)
+        {
+            already = true;
+        }
         self.bgimg(obj.bgImg);
         var lastpoint = 0;
         self.segmentlist([]);
@@ -857,6 +890,7 @@ var pathgen = {
             );
 
         self.mapofpaths[self.pathName()] = obj;
+        self._setbgImg(self.bgimg());
 
 
 
