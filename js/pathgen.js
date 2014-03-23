@@ -218,11 +218,31 @@ var pathgen = {
 
     },
 
+    _findSegmentsFromPoint: function(c1)
+    {
+        var x;
+        var pg = this;
+        var segments = [];
+        for(x = pg.segmentlist().length-1; x >= 0; x--)
+        {
+            if(pg.segmentlist()[x].data("c1") == c1)
+            {
+                segments.push(pg.segmentlist()[x]);
+
+            }
+            else if(pg.segmentlist()[x].data("c2") == c1)
+            {
+                segments.push(pg.segmentlist()[x]);
+            }
+        }
+
+        return segments;
+    },
     _deleteSegmentsFromPoint: function(c1)
     {
         var x;
         var pg = this;
-        for(x = pg.segmentlist.length-1; x >= 0; x--)
+        for(x = pg.segmentlist().length-1; x >= 0; x--)
         {
             if(pg.segmentlist()[x].data("c1") == c1)
             {
@@ -393,21 +413,81 @@ var pathgen = {
         line.data("p2",p2);
         line.data("intervaltime",intervaltime? intervaltime : pg.defaulttime());
 
-        line.data("description", "(" + p1.x + "," + p1.y + ")" + "," + "(" + p2.x + "," + p2.y + ")" + " :" + line.data("intervaltime") + "s");
+        line.data("description", "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + line.data("intervaltime") + "s");
 
         line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
         line.click(pg.lineClicked);
         line.data("parentPathGen",pg);
         return line;
     },
-    _rotationPanelOK: function(rotation)
+    _makeDescription: function(p1,p2,c1,c2,intervaltime)
     {
 
+       var v;
+       v = "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + intervaltime + "s";
+       return v;
+    },
+    _rotationPanelOK: function(currentpoint)
+    {
+        currentpoint.data("rotation",currentpoint.data("parentPathGen").defaultrotation());
+
+
+        var elmtTable = document.getElementById('leftbarbody');
+        var tableRows = elmtTable.getElementsByTagName('tr');
+        var rowCount = tableRows.length;
+        var x = 0;
+        for (x=rowCount-1; x>0; x--) {
+            elmtTable.removeChild(tableRows[x]);
+        }
+
+        if(x == 0 && tableRows.length > 0)
+        {
+
+            tableRows[x].innerHTML="<td class=\"description\" data-bind=\"text: data('description')\"></td>";
+        }
+
+
+        var segments = this._findSegmentsFromPoint(currentpoint);
+
+        if(segments != null && segments.length > 0)
+        {
+
+            var p1,p2,c1,c2,intervaltime;
+
+
+            for(x=0; x < segments.length; x++)
+            {
+                p1 = segments[x].data("p1");
+                p2 = segments[x].data("p2");
+                c1 = segments[x].data("c1");
+                c2 = segments[x].data("c2");
+                intervaltime = segments[x].data("intervaltime");
+                segments[x].data("description",this._makeDescription(p1,p2,c1,c2,intervaltime));
+            }
+        }
+
+        /*
+        var alist = elmtTable.getElementsByTagName("td");
+        if(alist != null && alist.length > 0)
+        {
+            var x,n;
+            n = alist.length;
+            for(x=0; x < n; x++)
+            {
+                alist[x].innerHTML='';
+            }
+
+        }*/
+        ko.cleanNode(document.getElementById("leftbar"));
+        ko.applyBindings(currentpoint.data("parentPathGen"), document.getElementById("leftbar"));
     },
     _linePanelOK: function(currentline)
     {
         currentline.data("intervaltime",currentline.data("parentPathGen").defaulttime());
-        currentline.data("description", "(" + currentline.data("p1").x + "," + currentline.data("p1").y + ")" + "," + "(" + currentline.data("p2").x + "," + currentline.data("p2").y + ")" + " :" + currentline.data("intervaltime") + "s");
+        var c1 = currentline.data("c1");
+        var c2 = currentline.data("c2");
+
+        currentline.data("description", "(" + currentline.data("p1").x + "," + currentline.data("p1").y +  "@" + c1.data("rotation") + ")" + "," + "(" + currentline.data("p2").x + "," + currentline.data("p2").y +  "@" + c2.data("rotation") + ")" + " :" + currentline.data("intervaltime") + "s");
         var elmtTable = document.getElementById('leftbarbody');
         var tableRows = elmtTable.getElementsByTagName('tr');
         var rowCount = tableRows.length;
@@ -499,6 +579,7 @@ var pathgen = {
         circle.hover(pg.pointHoverIn,pg.pointHoverOut,circle,circle);
         circle.data("pointId",pg.pointCounter);
         circle.data("parentPathGen",pg);
+        circle.data("rotation",pg.defaultrotation());
         pg.pointCounter++;
 
         circle.attr("fill",pg.default_circle_fillcolor);
@@ -558,7 +639,7 @@ var pathgen = {
             
             $(this).dialog("close");
             e.preventDefault();
-            if(currentpoint && currentline.data("parentPathGen"))
+            if(currentpoint && currentpoint.data("parentPathGen"))
             {
                 currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);
 
