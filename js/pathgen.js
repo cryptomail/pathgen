@@ -32,6 +32,8 @@ var pathgen = {
     linewidth:5,
     mapofpaths:{},
     editor:null,
+    rect:null,
+    bgimg:ko.observable(""),
 
     /*
      Initializes pathgen object.
@@ -154,16 +156,21 @@ var pathgen = {
         {
             return;
         }
-        if(pathgen.paper)
+        if(this.paper)
         {
-            pathgen.paper.clear();
+            this.paper.clear();
 
         }
         else
         {
-            pathgen.paper = new Raphael("main","100%","100%");
+            this.paper = new Raphael("main","100%","100%");
         }
 
+        var w;
+        var h;
+        w = element.offsetWidth;
+        h = element.offsetHeight;
+        this.rect = this.paper.rect(0,0,w,h);
         element.onclick = pathgen.onClickpaper;
     },
     requestPathSelectedChange: function(pathvalue)
@@ -180,6 +187,22 @@ var pathgen = {
         self.pathName(pathvalue);
 
     },
+    _setbgImg: function(path)
+    {
+        if(path)
+        {
+            this.rect.attr(
+                {
+                    fill: "url(" + path + ")"
+                }
+            );
+        }
+    },
+    requestBGImageChange: function(path)
+    {
+        this._setbgImg(path);
+
+    },
     initialize: function()
     {
         var pg = this;
@@ -188,6 +211,7 @@ var pathgen = {
         pg.screenwidth.subscribe(pg.requestScreenWidthChange,pg);
         pg.screenheight.subscribe(pg.requestScreenHeightChange,pg);
         pg.selectedpath.subscribe(pg.requestPathSelectedChange,pg);
+        pg.bgimg.subscribe(pg.requestBGImageChange,pg);
         ko.applyBindings(pg);
 
 
@@ -740,6 +764,7 @@ var pathgen = {
         obj.screenHeight = this.screenheight();
         obj.defaultInterval = this.defaulttime()  + "";
         obj.defaultRotation = this.defaultrotation();
+        obj.bgImg = this.bgimg();
         obj.segmentList = [];
 
         this.segmentlist().forEach( 
@@ -785,6 +810,8 @@ var pathgen = {
 
 
         self.paper.clear();
+
+
         self.pathName(obj.pathName);
 
         if(self.paths.indexOf(obj.pathName) == -1)
@@ -796,6 +823,8 @@ var pathgen = {
         self.screenwidth(obj.screenWidth);
         self.defaulttime(obj.defaultInterval);
         self.defaultrotation(obj.defaultRotation);
+        this.rect = this.paper.rect(0,0,this.screenwidth(),this.screenheight());
+        self.bgimg(obj.bgImg);
         var lastpoint = 0;
         self.segmentlist([]);
         self.pointlist=[];
