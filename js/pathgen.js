@@ -10,6 +10,8 @@ Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
 
 var pathgen = {
     paper:null,
+    paths:ko.observableArray(),
+    selectedpath:ko.observable(""),
     pointlist: [],
     segmentlist: ko.observableArray(),
     selectedPoints:[],
@@ -26,7 +28,9 @@ var pathgen = {
     screenheight:ko.observable(480),
     defaulttime:ko.observable(3),
     pathName:ko.observable(""),
+    defaultrotation:ko.observable(0),
     linewidth:5,
+    mapofpaths:{},
     editor:null,
 
     /*
@@ -162,6 +166,20 @@ var pathgen = {
 
         element.onclick = pathgen.onClickpaper;
     },
+    requestPathSelectedChange: function(pathvalue)
+    {
+        console.log("selected path " + pathvalue);
+
+        var self = this;
+        var obj = self.mapofpaths[pathvalue];
+        if(obj != null)
+        {
+            self._pathFromJSON(obj);
+            self.editor.set(obj);
+        }
+        self.pathName(pathvalue);
+
+    },
     initialize: function()
     {
         var pg = this;
@@ -169,6 +187,7 @@ var pathgen = {
 
         pg.screenwidth.subscribe(pg.requestScreenWidthChange,pg);
         pg.screenheight.subscribe(pg.requestScreenHeightChange,pg);
+        pg.selectedpath.subscribe(pg.requestPathSelectedChange,pg);
         ko.applyBindings(pg);
 
 
@@ -684,13 +703,43 @@ var pathgen = {
         e.preventDefault();
 
     },
+    _emitError: function()
+    {
+        var errormap = {
+            1:"Pathname invalid.",
+            2:"Invalid JSON!"
+        };
+
+        var eno = arguments[0];
+        if(errormap[eno] == null)
+        {
+            $.growl.error({ message: "unknown error" });
+        }
+        else
+        {
+            var msg = errormap[eno];
+            var x;
+            for(x=1; x < arguments.length; x++)
+            {
+                msg += " ";
+                msg += arguments[x];
+            }
+            $.growl.error({ message: msg});
+        }
+    },
     _pathToJSON: function()
     {
         var obj = {};
+        if(this.pathName() == null || this.pathName().length <= 0)
+        {
+            this._emitError(1);
+            return null;
+        }
         obj.pathName = this.pathName();
         obj.screenWidth = this.screenwidth();
         obj.screenHeight = this.screenheight();
         obj.defaultInterval = this.defaulttime()  + "";
+        obj.defaultRotation = this.defaultrotation();
         obj.segmentList = [];
 
         this.segmentlist().forEach( 
@@ -705,6 +754,17 @@ var pathgen = {
             }
         );
 
+        var idx = this.paths.indexOf(this.pathName());
+        if(idx != -1)
+        {
+            
+        }
+        else
+        {
+            this.paths.push(this.pathName());
+        }
+        this.selectedpath(this.pathName());
+        this.mapofpaths[this.pathName()] = obj;
         return obj;
     },
     onOutputJSON: function()
@@ -712,16 +772,30 @@ var pathgen = {
         var self = this;
         var obj = self._pathToJSON();
 
+        if(obj == null)
+         return;
+
         self.editor.set(obj);
+
     },
     _pathFromJSON: function(obj)
     {
+
         var self = this;
+
+
         self.paper.clear();
         self.pathName(obj.pathName);
-        self.screenheight(obj.screenheight);
-        self.screenwidth(obj.screenwidth);
+
+        if(self.paths.indexOf(obj.pathName) == -1)
+        {
+            self.paths.push(obj.pathName);
+        }
+
+        self.screenheight(obj.screenHeight);
+        self.screenwidth(obj.screenWidth);
         self.defaulttime(obj.defaultInterval);
+        self.defaultrotation(obj.defaultRotation);
         var lastpoint = 0;
         self.segmentlist([]);
         self.pointlist=[];
@@ -752,11 +826,26 @@ var pathgen = {
                
             }
             );
+
+        self.mapofpaths[self.pathName()] = obj;
+
+
+
     },
     onInputJSON: function()
     {
         var self = this;
-        self._pathFromJSON(self.editor.get());
+        try
+        {
+            var obj = self.editor.get();
+            self._pathFromJSON(obj);
+            self.editor.set(obj);
+        }
+        catch(v)
+        {
+            this._emitError(2, v.toString());
+        }
+
     }
 
 };

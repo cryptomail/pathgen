@@ -20,7 +20,8 @@
         <script src="//code.jquery.com/jquery-1.9.1.js"></script>
         <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
         <script src="js/pathgen.js"></script>
-        
+        <script src="js/jquery.growl.js" type="text/javascript"></script>
+        <link href="css/jquery.growl.css" rel="stylesheet" type="text/css" />
         
 
     </head>
@@ -61,8 +62,8 @@
                 
 
 
-                rotation:    <input id="itemrotation" type="text" maxlength="4" size="4" ></input>
-                defaulttime: <input  data-bind="value: defaulttime" id="defaulttime" type="text" maxlength="4" size="4" ></input>
+                def. rotation:    <input data-bind="value: defaultrotation" id="defaultrotation" type="text" maxlength="4" size="4" ></input>
+                def. time: <input  data-bind="value: defaulttime" id="defaulttime" type="text" maxlength="4" size="4" ></input>
                 pathname: <input data-bind="value: pathName" id="pathname" type="text" maxlength="25" size="15" value="" ></input>
                 <br>
                 screenwidth: <input data-bind="value: screenwidth" id="screenwidth" type="text" maxlength="4" size="4"  ></input>
@@ -73,7 +74,7 @@
                 
                 
                 <div id="runsimulator" class="runsimulator">run</div>
-                <select id="pathnames" maxlength="25">
+                <select data-bind="options: paths, value:selectedpath" id="pathnames" maxlength="25">
                                     </select>
                
                 
@@ -95,7 +96,7 @@
     pathgen.initialize();
     document.getElementById('outputjson').addEventListener('click', function(){pathgen.onOutputJSON()}, false);
     document.getElementById('inputjson').addEventListener('click', function(){pathgen.onInputJSON()} ,false);
-    
+
 </script>
     </body>
     
