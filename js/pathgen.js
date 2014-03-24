@@ -171,12 +171,13 @@ var pathgen = {
         w = element.offsetWidth;
         h = element.offsetHeight;
         this.rect = this.paper.rect(0,0,w,h);
+        this.paper.parentPathGen = this;
         element.onclick = pathgen.onClickpaper;
+        element.parentPathGen = this;
+
     },
     requestPathSelectedChange: function(pathvalue)
     {
-        console.log("selected path " + pathvalue);
-
         var self = this;
         var obj = self.mapofpaths[pathvalue];
         if(obj != null)
@@ -615,11 +616,11 @@ var pathgen = {
      */
     onClickpaper: function(e)
     {
-        if(!self.simulationmode)
+        if(this.parentPathGen && !this.parentPathGen.simulationmode)
         {
             if(!e.defaultPrevented)
             {
-                pathgen.addPoint(e.offsetX, e.offsetY);
+                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
             }
 
         }
