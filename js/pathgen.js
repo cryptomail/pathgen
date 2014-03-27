@@ -36,6 +36,7 @@ var pathgen = {
     editor:null,
     rect:null,
     drawdirections:null,
+    mousedown:false,
     bgimg:ko.observable(""),
 
     /*
@@ -178,7 +179,9 @@ var pathgen = {
         this.paper.parentPathGen = this;
 
         
-        element.onclick = pathgen.onClickpaper;
+        element.onmousedown = pathgen.onPaperMouseDown;
+        element.onmouseup = pathgen.onPaperMouseUp;
+        element.onmousemove = pathgen.onPaperMouseMove;
         element.parentPathGen = this;
         this.drawdirections = null;
 
@@ -233,14 +236,9 @@ var pathgen = {
         var drawmodesteps = "Draw mode:\nStart drawing on mouse down, and draw your path.\nInclude all your pauses while holding the mouse.\n" +
         "When the mouse is released, you will be put into edit mode!"
         self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);  
-        self.rect.mousedown(self._drawModeMouseDown);
-
 
     },
-    _drawModeMouseDown: function(e)
-    {
-        console.log("_drawModeMouseDown")
-    },
+
     _setEditModeEdit: function()
     {
         var self = this;
@@ -666,19 +664,66 @@ var pathgen = {
     /*
      click handler for our canvas.  We'll put points here.
      */
-    onClickpaper: function(e)
+    onPaperMouseDown: function(e)
     {
-        if(this.parentPathGen && !this.parentPathGen.simulationmode)
+        if(!this.parentPathGen)
+        {
+            return;
+        }
+        this.parentPathGen.mousedown = true;
+        if(this.parentPathGen._isEditModeEdit())
         {
             if(!e.defaultPrevented)
             {
                 this.parentPathGen.addPoint(e.offsetX, e.offsetY);
             }
 
+
         }
-        else
+        else if(this.parentPathGen._isEditModeDraw())
+        {
+            if(this.parentPathGen.drawdirections)
+            {
+                this.parentPathGen.drawdirections.remove();
+                this.parentPathGen.drawdirections = null;
+            }
+            this.parentPathGen.addPoint(e.offsetX, e.offsetY);
+        }
+    },
+    onPaperMouseUp: function(e)
+    {
+        if(!this.parentPathGen)
+        {
+            return;
+        }
+        this.parentPathGen.mousedown = false;
+        if( this.parentPathGen._isEditModeEdit())
         {
 
+            if(!e.defaultPrevented)
+            {
+
+            }
+
+
+        }
+        else if(this.parentPathGen._isEditModeDraw())
+        {
+            console.log("On Mouse Up");
+        }
+    },
+    onPaperMouseMove: function(e)
+    {
+        if(!this.parentPathGen)
+        {
+            return;
+        }
+        if(this.parentPathGen._isEditModeDraw())
+        {
+            if(this.parentPathGen.mousedown)
+            {
+                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
+            }
         }
     },
     pointDoubleClicked: function(e)
