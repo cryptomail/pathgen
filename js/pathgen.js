@@ -10,6 +10,8 @@ Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
 
 var pathgen = {
     paper:null,
+    editmodes:ko.observableArray(["draw","edit"]),
+    selectededitmode:ko.observable("edit"),
     paths:ko.observableArray(),
     selectedpath:ko.observable(""),
     pointlist: [],
@@ -33,6 +35,7 @@ var pathgen = {
     mapofpaths:{},
     editor:null,
     rect:null,
+    drawdirections:null,
     bgimg:ko.observable(""),
 
     /*
@@ -131,7 +134,7 @@ var pathgen = {
         error: function (err) {
           alert(err.toString());
         }
-  };
+        };
         
         this.editor = new jsoneditor.JSONEditor(container,options);
 
@@ -171,9 +174,13 @@ var pathgen = {
         w = element.offsetWidth;
         h = element.offsetHeight;
         this.rect = this.paper.rect(0,0,w,h);
+        this.rect.data("parentPathGen",this);
         this.paper.parentPathGen = this;
+
+        
         element.onclick = pathgen.onClickpaper;
         element.parentPathGen = this;
+        this.drawdirections = null;
 
     },
     requestPathSelectedChange: function(pathvalue)
@@ -202,7 +209,50 @@ var pathgen = {
     requestBGImageChange: function(path)
     {
         this._setbgImg(path);
+    },
+    requestSelectedEditModeChange: function(editmode)
+    {
+        console.log("Edit mode changed to " + editmode);
+        var self  = this;
+        if(editmode.toLowerCase() == "edit")
+        {
+            self._setEditModeEdit();
+        }
+        else
+        {
+            self._setEditModeDraw();
+        }
+    },
+    _setEditModeDraw: function()
+    {
+        var self = this;
+        self._initCanvas();
+        /*
+        Put some text on the background that explains how to enter into draw mode
+        */
+        var drawmodesteps = "Draw mode:\nStart drawing on mouse down, and draw your path.\nInclude all your pauses while holding the mouse.\n" +
+        "When the mouse is released, you will be put into edit mode!"
+        self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);  
+        self.rect.mousedown(self._drawModeMouseDown);
 
+
+    },
+    _drawModeMouseDown: function(e)
+    {
+        console.log("_drawModeMouseDown")
+    },
+    _setEditModeEdit: function()
+    {
+        var self = this;
+        self._initCanvas();
+    },
+    _isEditModeDraw: function()
+    {
+        return this.selectededitmode().toLowerCase() == "draw";
+    },
+    _isEditModeEdit: function()
+    {
+        return !this._isEditModeDraw();
     },
     initialize: function()
     {
@@ -212,8 +262,10 @@ var pathgen = {
         pg.screenwidth.subscribe(pg.requestScreenWidthChange,pg);
         pg.screenheight.subscribe(pg.requestScreenHeightChange,pg);
         pg.selectedpath.subscribe(pg.requestPathSelectedChange,pg);
+        pg.selectededitmode.subscribe(pg.requestSelectedEditModeChange,pg);
         pg.bgimg.subscribe(pg.requestBGImageChange,pg);
         ko.applyBindings(pg);
+        pg.requestSelectedEditModeChange(pg.selectededitmode());
 
 
 
@@ -933,7 +985,8 @@ var pathgen = {
         self.screenwidth(obj.screenWidth);
         self.defaulttime(obj.defaultInterval);
         self.defaultrotation(obj.defaultRotation);
-        this.rect = this.paper.rect(0,0,this.screenwidth(),this.screenheight());
+        self.rect = this.paper.rect(0,0,this.screenwidth(),this.screenheight());
+        self.rect.data("parentPathGen",self);
         var already = false;
         if(self.bgimg() == obj.bgImg)
         {
