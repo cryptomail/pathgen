@@ -8,10 +8,15 @@ Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
     return ps;
 };
 
+
+
+
+
+
 var pathgen = {
     paper:null,
     editmodes:ko.observableArray(["draw","edit"]),
-    selectededitmode:ko.observable("edit"),
+    selectededitmode:ko.observable("draw"),
     paths:ko.observableArray(),
     selectedpath:ko.observable(""),
     pointlist: [],
@@ -38,6 +43,11 @@ var pathgen = {
     drawdirections:null,
     mousedown:false,
     bgimg:ko.observable(""),
+    captureinterval:null,
+    currentX:0,
+    currentY:0,
+    starttime:0,
+    elapsedtime:ko.observable(0),
 
     /*
      Initializes pathgen object.
@@ -177,11 +187,6 @@ var pathgen = {
         this.rect = this.paper.rect(0,0,w,h);
         this.rect.data("parentPathGen",this);
         this.paper.parentPathGen = this;
-
-        
-        element.onmousedown = pathgen.onPaperMouseDown;
-        element.onmouseup = pathgen.onPaperMouseUp;
-        element.onmousemove = pathgen.onPaperMouseMove;
         element.parentPathGen = this;
         this.drawdirections = null;
 
@@ -235,14 +240,49 @@ var pathgen = {
         */
         var drawmodesteps = "Draw mode:\nStart drawing on mouse down, and draw your path.\nInclude all your pauses while holding the mouse.\n" +
         "When the mouse is released, you will be put into edit mode!"
-        self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);  
+        self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);
 
+        var element = document.getElementById("main");
+        element.onclick = null;
+        element.onmousedown = pathgen.onPaperMouseDown;
+        element.onmouseup = pathgen.onPaperMouseUp;
+        element.onmousemove = pathgen.onPaperMouseMove;
     },
 
+    _flattenPoints: function()
+    {
+        var self = this;
+        var pt = [];
+        if(self.pointlist == null)
+        {
+            return null;
+        }
+        self.pointlist.forEach(
+            function(i)
+            {
+                var p;
+                p = [];
+                p.push(i.attr("cx"));
+                p.push(i.attr("cy"));
+                pt.push(p);
+            }
+        );
+
+        return pt;
+    },
     _setEditModeEdit: function()
     {
         var self = this;
+        var result = null;
+
         self._initCanvas();
+
+        var element = document.getElementById("main");
+        element.onclick = pathgen.onPaperClick;
+        element.onmousedown = null;
+        element.onmouseup = null;
+        element.onmousemove = pathgen.onPaperMouseMove;
+
     },
     _isEditModeDraw: function()
     {
@@ -462,9 +502,10 @@ var pathgen = {
         line.data("c2",c2);
         line.data("p1",p1);
         line.data("p2",p2);
-        line.data("intervaltime",intervaltime? intervaltime : pg.defaulttime());
+        var delta = Math.abs(c1.data("time")-c2.data("time"));
+        line.data("intervaltime",intervaltime? intervaltime : delta);
 
-        line.data("description", "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + line.data("intervaltime") + "s");
+        line.data("description", "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + line.data("intervaltime") + "ms");
 
         line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
         line.click(pg.lineClicked);
@@ -563,7 +604,8 @@ var pathgen = {
     {
         var currentline;
         currentline = this;
-        e.preventDefault();
+        e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
+
         document.getElementById("dialog-form-time").style.visibility="visible";
         $('#dialog-time').keypress(function(e) {
         if (e.keyCode == $.ui.keyCode.ENTER) {
@@ -623,7 +665,7 @@ var pathgen = {
      addPoint
      Adds a point at x,y
      */
-    addPoint: function(x,y)
+    addPoint: function(x,y,thetime)
     {
         var pg = this;
         var circle = pg.paper.circle(x,y,pg.default_circle_radius);
@@ -631,6 +673,10 @@ var pathgen = {
         circle.data("pointId",pg.pointCounter);
         circle.data("parentPathGen",pg);
         circle.data("rotation",pg.defaultrotation());
+        var d = new Date();
+        var n = d.getTime();
+        circle.data("time",thetime!=null?thetime:n);
+
         pg.pointCounter++;
 
         circle.attr("fill",pg.default_circle_fillcolor);
@@ -653,6 +699,7 @@ var pathgen = {
                 y:b.attr('cy')
             };
 
+
             var line = pg.createLine(p1,p2,a,b,null,pg);
             
             pg.segmentlist.push(line);
@@ -661,6 +708,37 @@ var pathgen = {
     },
 
 
+    onTimer: function()
+    {
+
+        //console.log("x: " + + " y: "+ this.pathgen.currentY);
+        this.pathgen.addPoint(this.pathgen.currentX,this.pathgen.currentY);
+
+        var d = new Date();
+        var n = d.getTime();
+        this.pathgen.elapsedtime((n-this.pathgen.starttime)/1000);
+    },
+    onPaperClick: function(e)
+    {
+        if(!this.parentPathGen)
+        {
+            return;
+        }
+        if(!this.parentPathGen._isEditModeEdit())
+        {
+            return false;
+        }
+        if(this.parentPathGen._isEditModeEdit())
+        {
+
+            {
+                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
+            }
+            return false;
+
+        }
+
+    },
     /*
      click handler for our canvas.  We'll put points here.
      */
@@ -673,11 +751,11 @@ var pathgen = {
         this.parentPathGen.mousedown = true;
         if(this.parentPathGen._isEditModeEdit())
         {
-            if(!e.defaultPrevented)
+            //if((!this.parentPathGen.pointlist) || (this.parentPathGen.pointlist && this.parentPathGen.pointlist.length < 5))
             {
                 this.parentPathGen.addPoint(e.offsetX, e.offsetY);
             }
-
+            return false;
 
         }
         else if(this.parentPathGen._isEditModeDraw())
@@ -687,30 +765,92 @@ var pathgen = {
                 this.parentPathGen.drawdirections.remove();
                 this.parentPathGen.drawdirections = null;
             }
+            var d = new Date();
+            var n = d.getTime();
+            this.parentPathGen.starttime = n;
             this.parentPathGen.addPoint(e.offsetX, e.offsetY);
+            this.captureinterval = setInterval(this.parentPathGen.onTimer,10);
         }
     },
     onPaperMouseUp: function(e)
     {
-        if(!this.parentPathGen)
+        var self = this;
+        if(!self.parentPathGen)
         {
-            return;
+            return false;
         }
-        this.parentPathGen.mousedown = false;
-        if( this.parentPathGen._isEditModeEdit())
+        if( self.parentPathGen._isEditModeEdit())
         {
+            return false;
+        }
+        if(self.captureinterval)
+        {
+            clearInterval(self.captureinterval);
+        }
 
-            if(!e.defaultPrevented)
+        var xx = self.parentPathGen._collapsePoints();
+
+        self.parentPathGen.selectededitmode("edit");
+
+        if(xx && xx.length > 0)
+        {
+            xx.forEach(
+                function(i)
+                {
+                    self.parentPathGen.addPoint(i.attr("cx"), i.attr("cy"),i.data("time"));
+                }
+            );
+        }
+        self.parentPathGen.mousedown = false;
+
+    },
+    _collapsePoints: function()
+    {
+        var self = this;
+        var x;
+        var n;
+        if(self.pointlist == null)
+        {
+            return self.pointlist;
+        }
+        var newlist = [];
+        if(self.pointlist.length <= 2)
+        {
+            self.pointlist.forEach(
+                function(i)
+                {
+                    newlist.push(i);
+                }
+            );
+
+            return newlist;
+        }
+        n = self.pointlist.length;
+        var anchor = null;
+        var delta = 0;
+        anchor = self.pointlist[0];
+
+        newlist.push(anchor);
+        for(x=1; x < n - 1; x++)
+        {
+            if(anchor.attr("cx") == self.pointlist[x].attr("cx") &&
+                anchor.attr("cy") == self.pointlist[x].attr("cy") )
             {
 
+
+
             }
-
-
+            else
+            {
+                anchor = self.pointlist[x];
+                newlist.push(anchor);
+            }
         }
-        else if(this.parentPathGen._isEditModeDraw())
-        {
-            console.log("On Mouse Up");
-        }
+
+        newlist.push(self.pointlist[x]);
+
+        return newlist;
+
     },
     onPaperMouseMove: function(e)
     {
@@ -718,13 +858,8 @@ var pathgen = {
         {
             return;
         }
-        if(this.parentPathGen._isEditModeDraw())
-        {
-            if(this.parentPathGen.mousedown)
-            {
-                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            }
-        }
+        this.parentPathGen.currentX = e.offsetX;
+        this.parentPathGen.currentY = e.offsetY;
     },
     pointDoubleClicked: function(e)
     {
@@ -753,7 +888,8 @@ var pathgen = {
     {
 
         var pg = this.data("parentPathGen");
-        e.preventDefault();
+        e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
+
         if(e.altKey)
         {
             var n;
@@ -1047,18 +1183,19 @@ var pathgen = {
             {
                 if(i==0)
                 {
-                    self.addPoint(e.p1.x,e.p1.y);
-                    self.addPoint(e.p2.x,e.p2.y);
+                    self.addPoint(e.p1.x,e.p1.y,0);
+                    self.addPoint(e.p2.x,e.p2.y, e.intervalTime);
                 }
                 else if(i+1 <= arr.length)
                 {
-                    if(lastpoint % 2 === 0)
+                    if(lastpoint % 2 == 0)
                     {
-                        self.addPoint(e.p1.x,e.p1.y);
+                        self.addPoint(e.p1.x,e.p1.y,0);
                     }
                     else
                     {
-                        self.addPoint(e.p2.x,e.p2.y);
+                        self.addPoint(e.p2.x,e.p2.y, self.pointlist[i].data("time")-  e.intervalTime);
+                        //self.addPoint(e.p2.x,e.p2.y, e.intervalTime);
                         lastpoint++;
                     }
                 }
