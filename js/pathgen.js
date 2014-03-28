@@ -48,6 +48,7 @@ var pathgen = {
     currentY:0,
     starttime:0,
     elapsedtime:ko.observable(0),
+    simulationrunning:false,
 
     /*
      Initializes pathgen object.
@@ -256,7 +257,7 @@ var pathgen = {
     {
         var self = this;
 
-
+        self._initCanvas();
 
         var element = document.getElementById("main");
         element.onclick = pathgen.onPaperClick;
@@ -745,10 +746,7 @@ var pathgen = {
         {
             return;
         }
-        if(!this.parentPathGen._isEditModeEdit())
-        {
-            return false;
-        }
+
         if(this.parentPathGen._isEditModeEdit())
         {
 
@@ -760,9 +758,31 @@ var pathgen = {
         }
         else if(this.parentPathGen._isEditModeSimulation())
         {
+            if(this.parentPathGen.simulationrunning)
+            {
+                this.parentPathGen._stopSimulation();
+            }
+            else
+            {
+                this.parentPathGen._startSimulation();
+            }
             return true;
         }
 
+    },
+    _startSimulation: function()
+    {
+        if(this.simulationrunning)
+        {
+            this._stopSimulation();
+        }
+        console.log("start simulation");
+        this.simulationrunning = true;
+    },
+    _stopSimulation: function()
+    {
+        this.simulationrunning = false;
+        console.log("stop simulation");
     },
     /*
      click handler for our canvas.  We'll put points here.
