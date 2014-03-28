@@ -15,7 +15,7 @@ Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
 
 var pathgen = {
     paper:null,
-    editmodes:ko.observableArray(["draw","edit"]),
+    editmodes:ko.observableArray(["draw","edit","simulation"]),
     selectededitmode:ko.observable("draw"),
     paths:ko.observableArray(),
     selectedpath:ko.observable(""),
@@ -222,13 +222,17 @@ var pathgen = {
     {
         console.log("Edit mode changed to " + editmode);
         var self  = this;
-        if(editmode.toLowerCase() == "edit")
+        if(this._isEditModeEdit())
         {
             self._setEditModeEdit();
         }
-        else
+        else if(this._isEditModeDraw())
         {
             self._setEditModeDraw();
+        }
+        else if(this._isEditModeSimulation())
+        {
+            self._setEditModeSimulation();
         }
     },
     _setEditModeDraw: function()
@@ -248,6 +252,19 @@ var pathgen = {
         element.onmouseup = pathgen.onPaperMouseUp;
         element.onmousemove = pathgen.onPaperMouseMove;
     },
+    _setEditModeSimulation: function()
+    {
+        var self = this;
+
+
+
+        var element = document.getElementById("main");
+        element.onclick = pathgen.onPaperClick;
+        element.onmousedown = null;
+        element.onmouseup = null;
+        element.onmousemove = null;
+    },
+
 
     _flattenPoints: function()
     {
@@ -288,9 +305,13 @@ var pathgen = {
     {
         return this.selectededitmode().toLowerCase() == "draw";
     },
+    _isEditModeSimulation: function()
+    {
+        return this.selectededitmode().toLowerCase() == "simulation";
+    },
     _isEditModeEdit: function()
     {
-        return !this._isEditModeDraw();
+        return this.selectededitmode().toLowerCase() == "edit";
     },
     initialize: function()
     {
@@ -736,6 +757,10 @@ var pathgen = {
             }
             return false;
 
+        }
+        else if(this.parentPathGen._isEditModeSimulation())
+        {
+            return true;
         }
 
     },
