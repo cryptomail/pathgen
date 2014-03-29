@@ -194,6 +194,10 @@ var pathgen = {
     },
     requestPathSelectedChange: function(pathvalue)
     {
+        if(!pathvalue)
+        {
+            return;
+        }
         var self = this;
         var obj = self.mapofpaths[pathvalue];
 
@@ -249,6 +253,14 @@ var pathgen = {
         {
             self._setEditModeSimulation();
         }
+        if((!this._isEditModeDraw()) && self.pathName() != null && self.pathName().length > 0)
+        {
+            self.requestPathSelectedChange(self.pathName());
+        }
+        else
+        {
+            self._setbgImg(self.bgimg());
+        }
     },
     _setEditModeDraw: function()
     {
@@ -267,6 +279,8 @@ var pathgen = {
         element.onmousedown = pathgen.onPaperMouseDown;
         element.onmouseup = pathgen.onPaperMouseUp;
         element.onmousemove = pathgen.onPaperMouseMove;
+        self.pathName("");
+
     },
     _putSimulatorText: function()
     {
@@ -899,6 +913,23 @@ var pathgen = {
             this.captureinterval = setInterval(this.parentPathGen.onTimer,10);
         }
     },
+    _findTempPathName: function()
+    {
+        var self = this;
+        var x=0;
+        var namebase = "tsetse_";
+        while(true)
+        {
+
+            var name = namebase + x;
+            if(!self.mapofpaths[name])
+            {
+                return name;
+            }
+            x++;
+        }
+        return null;
+    },
     onPaperMouseUp: function(e)
     {
         var self = this;
@@ -917,17 +948,14 @@ var pathgen = {
 
         var xx = self.parentPathGen._collapsePoints();
 
+        if(self.parentPathGen.pathName && self.parentPathGen.pathName().length == 0)
+        {
+            self.parentPathGen.pathName(self.parentPathGen._findTempPathName());
+
+        }
+        self.parentPathGen.onOutputJSON();
         self.parentPathGen.selectededitmode("edit");
 
-        if(xx && xx.length > 0)
-        {
-            xx.forEach(
-                function(i)
-                {
-                    self.parentPathGen.addPoint(i.attr("cx"), i.attr("cy"),i.data("time"));
-                }
-            );
-        }
         self.parentPathGen.mousedown = false;
 
     },
