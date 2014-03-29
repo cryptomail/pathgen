@@ -23,7 +23,7 @@
 6. ~~delete points [done 3/15/2014]~~
 7. ~~put segments in list [done 3/16/2014]~~
 8. ~~need to have panel for interval between points (on segments)  [done 3/17/2014]~~
-9. Present user with rotation panel when they click on point.
+9. ~~Present user with rotation panel when they click on point.~~
 10. Begin simulation runner
 11. Start building the app
 

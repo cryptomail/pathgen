@@ -49,6 +49,7 @@ var pathgen = {
     starttime:0,
     elapsedtime:ko.observable(0),
     simulationrunning:false,
+    modified:ko.observable(false),
 
     /*
      Initializes pathgen object.
@@ -174,7 +175,6 @@ var pathgen = {
         if(this.paper)
         {
             this.paper.clear();
-
         }
         else
         {
@@ -196,13 +196,26 @@ var pathgen = {
     {
         var self = this;
         var obj = self.mapofpaths[pathvalue];
+
+        if(self._isEditModeSimulation())
+        {
+            self._stopSimulation();
+        }
+        else if(self._isEditModeDraw())
+        {
+            self.selectededitmode("simulation");
+        }
         if(obj != null)
         {
             self._pathFromJSON(obj);
             self.editor.set(obj);
         }
-        
+        if(self._isEditModeSimulation())
+        {
+            self._putSimulatorText();
+        }
         self.pathName(pathvalue);
+
     },
     _setbgImg: function(path)
     {
@@ -223,6 +236,7 @@ var pathgen = {
     {
         console.log("Edit mode changed to " + editmode);
         var self  = this;
+
         if(this._isEditModeEdit())
         {
             self._setEditModeEdit();
@@ -240,6 +254,7 @@ var pathgen = {
     {
         var self = this;
         self._initCanvas();
+
         /*
         Put some text on the background that explains how to enter into draw mode
         */
@@ -253,17 +268,36 @@ var pathgen = {
         element.onmouseup = pathgen.onPaperMouseUp;
         element.onmousemove = pathgen.onPaperMouseMove;
     },
+    _putSimulatorText: function()
+    {
+        this._removeSimulatorText();
+        var drawmodesteps = "Simulation mode:\nClick to begin!"
+        this.drawdirections = this.paper.text(this.screenwidth()/2 , this.screenheight()/2,drawmodesteps);
+
+    },
+    _removeSimulatorText: function()
+    {
+      if(this.drawdirections)
+      {
+          this.drawdirections.remove();
+          this.drawdirections = null;
+      }
+    },
     _setEditModeSimulation: function()
     {
         var self = this;
 
         self._initCanvas();
 
+        this._putSimulatorText();
+
         var element = document.getElementById("main");
         element.onclick = pathgen.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
         element.onmousemove = null;
+
+
     },
 
 
@@ -300,6 +334,8 @@ var pathgen = {
         element.onmousedown = null;
         element.onmouseup = null;
         element.onmousemove = pathgen.onPaperMouseMove;
+
+
 
     },
     _isEditModeDraw: function()
@@ -598,6 +634,7 @@ var pathgen = {
     _linePanelOK: function(currentline)
     {
         currentline.data("intervaltime",currentline.data("parentPathGen").defaulttime());
+        currentline.data("parentPathGen").modified(true);
         var c1 = currentline.data("c1");
         var c2 = currentline.data("c2");
 
@@ -621,6 +658,7 @@ var pathgen = {
         }
         ko.cleanNode(document.getElementById("leftbar"));
         ko.applyBindings(currentline.data("parentPathGen"), document.getElementById("leftbar"));
+
     },
     lineClicked: function(e)
     {
@@ -690,6 +728,7 @@ var pathgen = {
     addPoint: function(x,y,thetime)
     {
         var pg = this;
+        pg.modified(true);
         var circle = pg.paper.circle(x,y,pg.default_circle_radius);
         circle.hover(pg.pointHoverIn,pg.pointHoverOut,circle,circle);
         circle.data("pointId",pg.pointCounter);
@@ -770,19 +809,47 @@ var pathgen = {
         }
 
     },
+
     _startSimulation: function()
     {
-        if(this.simulationrunning)
+        var self  = this;
+        if(self.simulationrunning)
         {
-            this._stopSimulation();
+            self._stopSimulation();
         }
         console.log("start simulation");
-        this.simulationrunning = true;
+        self.simulationrunning = true;
+        self._removeSimulatorText();
+        var bot = self.paper.bottom, res = [];
+        while (bot) {
+            res.push(bot);
+            bot = bot.next;
+        }
+        res.forEach(
+            function(i)
+            {
+                i.hide();
+            }
+        );
     },
     _stopSimulation: function()
     {
-        this.simulationrunning = false;
+        var self  = this;
+        self.simulationrunning = false;
         console.log("stop simulation");
+
+        self._putSimulatorText();
+        var bot = self.paper.bottom, res = [];
+        while (bot) {
+            res.push(bot);
+            bot = bot.next;
+        }
+        res.forEach(
+            function(i)
+            {
+                i.show();
+            }
+        );
     },
     /*
      click handler for our canvas.  We'll put points here.
@@ -980,6 +1047,7 @@ var pathgen = {
     {
         this.attr({cx: this.ox + dx, cy: this.oy + dy});
         var pg = this.data("parentPathGen");
+        pg.modified(true);
         var idx = pg.pointlist.indexOf(this);
         var avant = idx - 1;
         var apres = idx + 1;
@@ -1190,6 +1258,7 @@ var pathgen = {
 
         self.editor.set(obj);
 
+        self.modified(false);
     },
     _pathFromJSON: function(obj)
     {
@@ -1262,9 +1331,26 @@ var pathgen = {
         var self = this;
         try
         {
+            if(self._isEditModeSimulation())
+            {
+                self._stopSimulation();
+            }
+            else if(self._isEditModeDraw())
+            {
+                self.selectededitmode("edit");
+            }
+            else if(self._isEditModeEdit())
+            {
+
+            }
             var obj = self.editor.get();
             self._pathFromJSON(obj);
             self.editor.set(obj);
+            if(self._isEditModeSimulation())
+            {
+                self._putSimulatorText();
+
+            }
         }
         catch(v)
         {
