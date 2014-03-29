@@ -261,7 +261,7 @@ var pathgen = {
         var drawmodesteps = "Draw mode:\nStart drawing on mouse down, and draw your path.\nInclude all your pauses while holding the mouse.\n" +
         "When the mouse is released, you will be put into edit mode!"
         self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);
-
+        self.drawdirections.attr({ "font-size": 10, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
         var element = document.getElementById("main");
         element.onclick = null;
         element.onmousedown = pathgen.onPaperMouseDown;
@@ -273,6 +273,7 @@ var pathgen = {
         this._removeSimulatorText();
         var drawmodesteps = "Simulation mode:\nClick to begin!"
         this.drawdirections = this.paper.text(this.screenwidth()/2 , this.screenheight()/2,drawmodesteps);
+        this.drawdirections.attr({ "font-size": 16, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
 
     },
     _removeSimulatorText: function()
@@ -664,6 +665,11 @@ var pathgen = {
     {
         var currentline;
         currentline = this;
+        var pg = this.data("parentPathGen");
+        if(pg._isEditModeSimulation())
+        {
+            return false;
+        }
         e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
 
         document.getElementById("dialog-form-time").style.visibility="visible";
@@ -810,6 +816,31 @@ var pathgen = {
 
     },
 
+    _showAllPaperElements: function(show, types)
+    {
+        var bot = this.paper.bottom, res = [];
+        while (bot) {
+            res.push(bot);
+            bot = bot.next;
+        }
+        res.forEach(
+            function(i)
+            {
+                if(types.indexOf(i.type) != -1)
+                {
+                    if(!show)
+                    {
+                        i.hide();
+                    }
+                    else
+                    {
+                        i.show();
+
+                    }
+                }
+            }
+        );
+    },
     _startSimulation: function()
     {
         var self  = this;
@@ -820,17 +851,10 @@ var pathgen = {
         console.log("start simulation");
         self.simulationrunning = true;
         self._removeSimulatorText();
-        var bot = self.paper.bottom, res = [];
-        while (bot) {
-            res.push(bot);
-            bot = bot.next;
-        }
-        res.forEach(
-            function(i)
-            {
-                i.hide();
-            }
-        );
+        self._showAllPaperElements(false,["rect","circle","path"]);
+        self._showAllPaperElements(true,["rect"]);
+
+        
     },
     _stopSimulation: function()
     {
@@ -839,17 +863,8 @@ var pathgen = {
         console.log("stop simulation");
 
         self._putSimulatorText();
-        var bot = self.paper.bottom, res = [];
-        while (bot) {
-            res.push(bot);
-            bot = bot.next;
-        }
-        res.forEach(
-            function(i)
-            {
-                i.show();
-            }
-        );
+        self._showAllPaperElements(true,["rect","circle","path"]);
+        
     },
     /*
      click handler for our canvas.  We'll put points here.
@@ -977,6 +992,11 @@ var pathgen = {
     {
         var currentpoint;
         currentpoint = this;
+        var pg = this.data("parentPathGen");
+        if(pg._isEditModeSimulation())
+        {
+            return false;
+        }
         e.preventDefault();
         document.getElementById("dialog-form-rotation").style.visibility="visible";
         $('#dialog-rotation').keypress(function(e) {
@@ -1000,6 +1020,10 @@ var pathgen = {
     {
 
         var pg = this.data("parentPathGen");
+        if(pg._isEditModeSimulation())
+        {
+            return false;
+        }
         e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
 
         if(e.altKey)
@@ -1039,14 +1063,28 @@ var pathgen = {
     },
     pointDragStart: function(x,y,e)
     {
+        var pg = this.data("parentPathGen");
+
+        if(pg._isEditModeSimulation())
+        {
+            return false;
+        }
         this.ox = this.attr("cx");
         this.oy = this.attr("cy");
         e.preventDefault();
     },
     pointDragMove: function(dx,dy)
     {
-        this.attr({cx: this.ox + dx, cy: this.oy + dy});
+        
         var pg = this.data("parentPathGen");
+
+        if(pg._isEditModeSimulation())
+        {
+            return false;
+        }
+
+        this.attr({cx: this.ox + dx, cy: this.oy + dy});
+
         pg.modified(true);
         var idx = pg.pointlist.indexOf(this);
         var avant = idx - 1;
@@ -1180,6 +1218,13 @@ var pathgen = {
     },
     pointDragEnd: function(e)
     {
+        var pg = this.data("parentPathGen");
+
+        if(pg._isEditModeSimulation())
+        {
+            return false;
+        }
+
         e.preventDefault();
 
     },
