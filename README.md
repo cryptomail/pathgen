@@ -24,7 +24,7 @@
 7. ~~put segments in list [done 3/16/2014]~~
 8. ~~need to have panel for interval between points (on segments)  [done 3/17/2014]~~
 9. ~~Present user with rotation panel when they click on point.~~
-10. Begin simulation runner
+10. Begin simulation runner [started 3/28.2014]
 11. Start building the app
 
 
