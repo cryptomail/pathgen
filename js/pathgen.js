@@ -12,7 +12,11 @@ Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
 
 
 
-
+function sleep(millis, callback) {
+    setTimeout(function()
+        { callback(); }
+        , millis);
+}
 var pathgen = {
     paper:null,
     editmodes:ko.observableArray(["draw","edit","simulation"]),
@@ -50,6 +54,8 @@ var pathgen = {
     elapsedtime:ko.observable(0),
     simulationrunning:false,
     modified:ko.observable(false),
+    simulatorset:null,
+    simulatorsegmentidx:0,
 
     /*
      Initializes pathgen object.
@@ -868,17 +874,54 @@ var pathgen = {
         self._showAllPaperElements(false,["rect","circle","path"]);
         self._showAllPaperElements(true,["rect"]);
 
-        
+        self.simulatorset = self.paper.set();
+
+        var simulatorpoint= self.paper.circle(0,0,self.default_circle_radius);
+        simulatorpoint.attr("fill",self.default_circle_fillcolor);
+        simulatorpoint.data(("parentPathGen"),self);
+        self.simulatorset.push(simulatorpoint);
+        self.simulatorset.translate(self.pointlist[0].attr("cx"),self.pointlist[0].attr("cy"));
+        self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
+        self.simulatorsegmentidx = -1;
+
+    },
+    _segmentDone: function()
+    {
+
+        var pg = this.items[0].data("parentPathGen");
+        if(pg.simulationrunning == false)
+        {
+            return;
+        }
+        pg.simulatorsegmentidx = (pg.simulatorsegmentidx + 1) % pg.segmentlist().length;
+        var cx,cy,rot,ms;
+        rot = 0;
+        cx = pg.segmentlist()[pg.simulatorsegmentidx].data("p2").x;
+        cy = pg.segmentlist()[pg.simulatorsegmentidx].data("p2").y;
+        ms = pg.segmentlist()[pg.simulatorsegmentidx].data("intervaltime");
+        pg.simulatorset.animate({transform: "t"+cx + ","+ cy + "r"+rot},ms,"linear",pg._segmentDone);
+
     },
     _stopSimulation: function()
     {
         var self  = this;
-        self.simulationrunning = false;
+
+        if(self.simulationrunning == false)
+        {
+            return;
+        }
+
+        if(self.simulatorset)
+        {
+            self.simulatorset.remove();
+            self.simulatorset = null;
+        }
+
         console.log("stop simulation");
 
         self._putSimulatorText();
         self._showAllPaperElements(true,["rect","circle","path"]);
-        
+        self.simulationrunning = false;
     },
     /*
      click handler for our canvas.  We'll put points here.
