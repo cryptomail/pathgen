@@ -933,7 +933,7 @@ var pathgen = {
         {
             return;
         }
-        this.parentPathGen.mousedown = true;
+
         if(this.parentPathGen._isEditModeEdit())
         {
             //if((!this.parentPathGen.pointlist) || (this.parentPathGen.pointlist && this.parentPathGen.pointlist.length < 5))
@@ -945,6 +945,11 @@ var pathgen = {
         }
         else if(this.parentPathGen._isEditModeDraw())
         {
+            if(this.parentPathGen.mousedown)
+            {
+                this.parentPathGen._performMouseUp();
+                return;
+            }
             if(this.parentPathGen.drawdirections)
             {
                 this.parentPathGen.drawdirections.remove();
@@ -955,6 +960,7 @@ var pathgen = {
             this.parentPathGen.starttime = n;
             this.parentPathGen.addPoint(e.offsetX, e.offsetY);
             this.parentPathGen.captureinterval = setInterval(this.parentPathGen.onTimer,10);
+            this.parentPathGen.mousedown=true;
         }
     },
     _findTempPathName: function()
@@ -981,6 +987,7 @@ var pathgen = {
         {
             return false;
         }
+        self.mousedown = false;
         if(self.captureinterval)
         {
             clearInterval(self.captureinterval);
@@ -996,7 +1003,7 @@ var pathgen = {
         self.onOutputJSON();
         self.selectededitmode("edit");
 
-        self.mousedown = false;
+
     },
     onPaperMouseUp: function(e)
     {
