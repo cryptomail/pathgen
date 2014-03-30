@@ -1005,8 +1005,8 @@ var pathgen = {
         {
             self.onOutputJSON();
         }
-        self.selectededitmode("edit");
-
+        self.selectededitmode("simulation");
+        self.onInputJSON();
 
     },
     onPaperMouseUp: function(e)
