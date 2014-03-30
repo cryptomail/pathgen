@@ -1403,7 +1403,7 @@ var pathgen = {
                 seg = {};
                 seg.p1 = i.data("p1");
                 seg.p2 = i.data("p2");
-                seg.intervalTime = i.data("intervaltime") + "";
+                seg.t = i.data("intervaltime") + "";
                 obj.segmentList.push(seg);
             }
         );
@@ -1487,7 +1487,7 @@ var pathgen = {
                 if(i==0)
                 {
                     self.addPoint(e.p1.x,e.p1.y,0);
-                    self.addPoint(e.p2.x,e.p2.y, e.intervalTime);
+                    self.addPoint(e.p2.x,e.p2.y, e.t);
                 }
                 else if(i+1 <= arr.length)
                 {
@@ -1497,7 +1497,7 @@ var pathgen = {
                     }
                     else
                     {
-                        self.addPoint(e.p2.x,e.p2.y, self.pointlist[i].data("time")-  e.intervalTime);
+                        self.addPoint(e.p2.x,e.p2.y, self.pointlist[i].data("time")-  e.t);
                         //self.addPoint(e.p2.x,e.p2.y, e.intervalTime);
                         lastpoint++;
                     }
