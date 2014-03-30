@@ -898,7 +898,7 @@ var pathgen = {
         }
         else
         {
-            simulatorpoint = self.paper.image(url,0,0,48,35);
+            simulatorpoint = self.paper.image(url,0,0,32,32);
         }
 
         simulatorpoint.data(("parentPathGen"),self);
