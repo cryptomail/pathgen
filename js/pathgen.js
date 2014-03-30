@@ -285,6 +285,7 @@ var pathgen = {
         element.onmousedown = pathgen.onPaperMouseDown;
         element.onmouseup = pathgen.onPaperMouseUp;
         element.onmousemove = pathgen.onPaperMouseMove;
+        element.onmouseout = pathgen.onPaperMouseOut;
         self.pathName("");
 
     },
@@ -953,7 +954,7 @@ var pathgen = {
             var n = d.getTime();
             this.parentPathGen.starttime = n;
             this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            this.captureinterval = setInterval(this.parentPathGen.onTimer,10);
+            this.parentPathGen.captureinterval = setInterval(this.parentPathGen.onTimer,10);
         }
     },
     _findTempPathName: function()
@@ -973,14 +974,10 @@ var pathgen = {
         }
         return null;
     },
-    onPaperMouseUp: function(e)
+    _performMouseUp: function()
     {
         var self = this;
-        if(!self.parentPathGen)
-        {
-            return false;
-        }
-        if( self.parentPathGen._isEditModeEdit())
+        if( self._isEditModeEdit())
         {
             return false;
         }
@@ -989,18 +986,40 @@ var pathgen = {
             clearInterval(self.captureinterval);
         }
 
-        var xx = self.parentPathGen._collapsePoints();
+        var xx = self._collapsePoints();
 
-        if(self.parentPathGen.pathName && self.parentPathGen.pathName().length == 0)
+        if(self.pathName && self.pathName().length == 0)
         {
-            self.parentPathGen.pathName(self.parentPathGen._findTempPathName());
+            self.pathName(self._findTempPathName());
 
         }
-        self.parentPathGen.onOutputJSON();
-        self.parentPathGen.selectededitmode("edit");
+        self.onOutputJSON();
+        self.selectededitmode("edit");
 
-        self.parentPathGen.mousedown = false;
+        self.mousedown = false;
+    },
+    onPaperMouseUp: function(e)
+    {
+        var self = this;
+        if(!self.parentPathGen)
+        {
+            return false;
+        }
+        self.parentPathGen._performMouseUp();
 
+    },
+    onPaperMouseOut: function(e)
+    {
+        var self = this;
+        if(!self.parentPathGen)
+        {
+            return false;
+        }
+        if( self.parentPathGen._isEditModeDraw() && !e.toElement.nodeName == "svg")
+        {
+            console.log("mouse out");
+            self.parentPathGen._performMouseUp();
+        }
     },
     _collapsePoints: function()
     {
