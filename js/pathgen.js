@@ -1028,9 +1028,10 @@ var pathgen = {
         if(!(self.pointlist == null || self.pointlist.length == 0))
         {
             self.onOutputJSON();
+            self.selectededitmode("simulation");
+            self.onInputJSON();
         }
-        self.selectededitmode("simulation");
-        self.onInputJSON();
+        
 
     },
     onPaperMouseUp: function(e)
