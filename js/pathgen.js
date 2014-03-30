@@ -9,14 +9,92 @@ Raphael.fn.line = function(startX, startY, endX, endY, strokewidth){
 };
 
 
-
-
-
 function sleep(millis, callback) {
     setTimeout(function()
         { callback(); }
         , millis);
 }
+/*
+What is an animation?
+*/
+/*
+1) Define a set of sprites from a sprite block
+2) Define a set of keyframes that are named
+3) A key frame is a set of coordinates (rectangle) into that sprite block
+3) Define an array of times to spend in each key frame and name it
+4) Each keyframe set instance will reference the timeblock
+5) Each segment will point to by name the key frame set instance along with the time block
+
+The rationale for splitting the keyframes from the time block is that an animation may take on the same keyframe block in the
+sprite block, however, the animation speeds may be entirely different.
+Imagine if you had two butterflies fluttering.  One butterfly could be flapping at a higher speed than another, or speed up 
+or slow down the flapping at different intervals, however the key frame pointers would be identical, rather than defining them over
+and over again :)
+
+Dynamic Vectoring Selector:
+If a keyframe set has a property called the Dynamic Vectoring Selector defined, or DVS, the system will switch to the appropriate 
+keyframe block if not specified explicitly in the segment.
+
+Concrete examples:
+Animationsets:
+{
+    robots:
+    {
+        src:"http://pngspriteblock.png",
+        keyFrames:
+        {
+            DVS:
+            [
+                {
+                    min:0,
+                    max:180,
+                    selectKeyFrame:up
+                },
+                {
+                    min:181,
+                    max: 359,
+                    selectKeyFrame:down
+                }
+            ]
+            up:
+            [
+                {
+                    x:0,
+                    y:0,
+                    w:32,
+                    h:32
+                },
+                {
+                    x:33,
+                    y:0,
+                    w:32,
+                    h:32
+                }
+            ],
+            down:
+            [
+                {
+                    x:0,
+                    y:33,
+                    w:32,
+                    h:32
+                },
+                {
+                    x:33,
+                    y:33,
+                    w:32,
+                    h:32
+                }
+            ]
+        }
+        timeBlocks:
+        {
+            fast: [30,30],
+            slow: [100,100]
+        }
+    }
+}
+*/
 var pathgen = {
     paper:null,
     editmodes:ko.observableArray(["draw","edit","simulation"]),
@@ -58,6 +136,8 @@ var pathgen = {
     simulatorset:null,
     simulatorsegmentidx:0,
     pathgenversion:"1",
+    animationinterval:null,
+    animationidx:0,
 
     /*
      Initializes pathgen object.
@@ -910,6 +990,29 @@ var pathgen = {
         self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
         self.simulatorsegmentidx = -1;
 
+        //self.animationinterval = setInterval(self.onAnimationTimer,1000);
+
+    },
+    onAnimationTimer: function()
+    {
+
+        var self = this;
+        var pg = self.pathgen;
+        pg.animationidx = (pg.animationidx + 1) % 2;
+        var url = "";
+        /*
+        if(pg.animationidx == 0)
+        {
+            url = "http://img1.wikia.nocookie.net/__cb20121111052818/animalcrossing/images/4/46/Agrias_Butterfly_%28Wild_World%29.png"
+        }
+        else
+        {
+            url = "http://img1.wikia.nocookie.net/__cb20111124034142/animalcrossing/images/1/1a/Grasshopper_%28Wild_World%29.gif";
+        }
+        pg.simulatorset[0].attr({src:url});
+        console.log("onAnimationTimer")
+        */
+        return;
     },
     _segmentDone: function()
     {
@@ -936,6 +1039,13 @@ var pathgen = {
         {
             return;
         }
+
+        if(self.animationinterval)
+        {
+            clearInterval(self.animationinterval);
+        }
+        
+        self.animationinterval = null;
 
         if(self.simulatorset)
         {
