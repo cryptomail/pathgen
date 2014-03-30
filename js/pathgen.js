@@ -47,6 +47,7 @@ var pathgen = {
     drawdirections:null,
     mousedown:false,
     bgimg:ko.observable(""),
+    spriteimg:ko.observable(""),
     captureinterval:null,
     currentX:0,
     currentY:0,
@@ -878,11 +879,34 @@ var pathgen = {
 
         self.simulatorset = self.paper.set();
 
-        var simulatorpoint= self.paper.circle(0,0,self.default_circle_radius);
-        simulatorpoint.attr("fill",self.default_circle_fillcolor);
+        var simulatorpoint;
+        var url = null;
+        if(self.spriteimg() != null && self.spriteimg().length > 0)
+        {
+            url = self.spriteimg();
+        }
+        else
+        {
+            url = null;
+        }
+        if(url==null)
+        {
+            simulatorpoint = self.paper.circle(0,0,self.default_circle_radius);
+            simulatorpoint.attr("fill",self.default_circle_fillcolor);
+
+            
+        }
+        else
+        {
+            simulatorpoint = self.paper.image(url,0,0,48,35);
+        }
+
         simulatorpoint.data(("parentPathGen"),self);
         self.simulatorset.push(simulatorpoint);
         self.simulatorset.translate(self.pointlist[0].attr("cx"),self.pointlist[0].attr("cy"));
+        
+        
+        
         self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
         self.simulatorsegmentidx = -1;
 
@@ -1368,6 +1392,7 @@ var pathgen = {
         obj.defaultInterval = this.defaulttime()  + "";
         obj.defaultRotation = this.defaultrotation();
         obj.bgImg = this.bgimg();
+        obj.spriteImg = this.spriteimg();
         obj.segmentList = [];
 
         this.segmentlist().forEach( 
@@ -1485,6 +1510,7 @@ var pathgen = {
 
         self.mapofpaths[self.pathName()] = obj;
         self._setbgImg(self.bgimg());
+        self.spriteimg(obj.spriteImg);
 
 
 
