@@ -56,6 +56,7 @@ var pathgen = {
     modified:ko.observable(false),
     simulatorset:null,
     simulatorsegmentidx:0,
+    pathgenversion:"1",
 
     /*
      Initializes pathgen object.
@@ -1000,7 +1001,10 @@ var pathgen = {
             self.pathName(self._findTempPathName());
 
         }
-        self.onOutputJSON();
+        if(!(self.pointlist == null || self.pointlist.length == 0))
+        {
+            self.onOutputJSON();
+        }
         self.selectededitmode("edit");
 
 
@@ -1358,6 +1362,7 @@ var pathgen = {
             return null;
         }
         obj.pathName = this.pathName();
+        obj.pathgenVersion = this.pathgenversion;
         obj.screenWidth = this.screenwidth();
         obj.screenHeight = this.screenheight();
         obj.defaultInterval = this.defaulttime()  + "";
@@ -1402,6 +1407,14 @@ var pathgen = {
 
         self.modified(false);
     },
+    _validateObject_1: function(obj)
+    {
+        /*
+        stubbed heh
+        TODO: validate!!
+        */
+        return 0;
+    },
     _pathFromJSON: function(obj)
     {
 
@@ -1410,7 +1423,15 @@ var pathgen = {
 
         self.paper.clear();
 
-
+        if((!obj.pathgenVersion) || obj.pathgenVersion == "1")
+        {
+            var eno = 0;
+            if((eno=this._validateObject_1(obj)) != 0)
+            {
+                this._emitError(2);
+                return;
+            }
+        }
         self.pathName(obj.pathName);
 
         if(self.paths.indexOf(obj.pathName) == -1)
