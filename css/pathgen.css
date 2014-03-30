@@ -1,0 +1,150 @@
+.ui-dialog-title {
+    font-size:10px !important;
+}
+.ui-widget-content {
+    font-size:10px !important;
+}
+div.select{
+    height:30px;
+
+}
+div.delbutton
+{
+    border-style:dotted;
+    border-width:1px;
+    background-color:red;
+    width:30px;
+    height:20px;
+    float: left;
+
+
+}
+div.runsimulator
+{
+    border-style:dotted;
+    border-width:1px;
+    background-color:darkgreen;
+    width:30px;
+    height:20px;
+    float: left;
+}
+div.outputjson
+{
+    border-style:dotted;
+    border-width:1px;
+    background-color:lightblue;
+    width:30px;
+    height:20px;
+    float: left;
+}
+div.inputjson
+{
+    border-style:dotted;
+    border-width:1px;
+    background-color:lightgreen;
+    width:30px;
+    height:20px;
+    float: left;
+}
+
+img.ball
+{
+    width:15px;
+    height:15px;
+
+}
+canvas.ball
+{
+
+    width:15px;
+    height:15px;
+
+}
+div.ball
+{
+    border-style:solid;
+    border-width:1px;
+    color:#000000;
+    font-size:8pt;
+    overflow:none;
+
+}
+div.ballselected
+{
+    border-style:solid;
+    border-width:1px;
+    border-color:red;
+    color:#000000;
+    font-size:8pt;
+    overflow:none;
+
+}
+
+div.main
+{
+    position:absolute;
+    background:white;
+    top:8px;
+    left:110px;
+    width:320px;
+    height:480px;
+    border-style:solid;
+    border-width:2px;
+
+}
+div.simulator
+{
+    visibility:hidden;
+    position:absolute;
+    background:white;
+    top:8px;
+    left:110px;
+    width:320px;
+    height:480px;
+    border-style:solid;
+    border-width:2px;
+
+}
+div.inputarea
+{
+    position:absolute;
+    background:white;
+    top:8;
+    left:432;
+    width:320px;
+    height:480px;
+    border-style:solid;
+    border-width:2px;
+
+}
+
+div.leftbar
+{
+
+    width:150px;
+    height:480px;
+    border-style:solid;
+    border-width:2px;
+    overflow:scroll;
+
+}
+
+div.bottombar
+{
+
+    width:420px;
+    height:100px;
+    border-style:solid;
+    border-width:2px;
+
+}
+td.description
+{
+    font-size: x-small;
+
+}
+tr:hover
+{
+    background-color: lightgreen;
+}
+
