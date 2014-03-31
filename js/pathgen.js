@@ -38,9 +38,8 @@ keyframe block if not specified explicitly in the segment.
 Concrete examples:
 Animationsets:
 {
-    robots:
+    robot:
     {
-        src:"http://pngspriteblock.png",
         keyFrames:
         {
             DVS:
@@ -55,35 +54,28 @@ Animationsets:
                     max: 359,
                     selectKeyFrame:down
                 }
-            ]
+            ],
+            w:32,
+            h:32,
             up:
             [
+
                 {
-                    x:0,
-                    y:0,
-                    w:32,
-                    h:32
+                    src:"http://pngup1.png"
                 },
                 {
-                    x:33,
-                    y:0,
-                    w:32,
-                    h:32
+                    src:"http://pngup2.png"
                 }
             ],
             down:
             [
+
                 {
-                    x:0,
-                    y:33,
-                    w:32,
-                    h:32
+                    src:"http://pngdown1.png"
                 },
                 {
-                    x:33,
-                    y:33,
-                    w:32,
-                    h:32
+                    src:"http://pngdown2.png"
+
                 }
             ]
         }
@@ -93,6 +85,23 @@ Animationsets:
             slow: [100,100]
         }
     }
+}
+
+DVS is a special reserved key that MAY not be overwritten.
+Then a path will reference it by:
+Path:
+{
+    defaultAnimationSet:robot,
+    defaultAnimationTimeBlock:fast,
+    defaultAnimationKeyFrameBlock:null,DVS
+}
+
+Then a segment may switch the animation block by:
+segment:
+{
+    animationSet:robot,
+    animationTimeBlock:slow,
+    animationKeyFrameBlock:"up,down,DVS"
 }
 */
 var pathgen = {
@@ -979,6 +988,7 @@ var pathgen = {
         else
         {
             simulatorpoint = self.paper.image(url,0,0,32,32);
+
         }
 
         simulatorpoint.data(("parentPathGen"),self);

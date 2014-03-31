@@ -29,7 +29,7 @@
 12. ~~Added sprite for the path simulator object [done 3/30/2014]~~
 13. Need to describe size of sprite in simulator
 14. ~~Added versioning to path info [done 3/30/2014]~~
-15. Think about animation patters and design.
+15. Think about animation patterns and design.
 
 
 
