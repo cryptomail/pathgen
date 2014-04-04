@@ -17,7 +17,7 @@
 ###Todo:
 1. ~~implement rubber banding [ 03/09/2014 wait didn't I just do that! \o/ yay]~~
 2. ~~consider using mvvm for stuff [ 3/14/2014 oh yeah baby...sorry @btford went with the supercharged water scooter but I still love your work :) ]~~
-3. JSON editor for input/output
+3. ~~JSON editor for input/output [done 3/30/2014]~~
 4. ~~resize [done 3/14/2014 YAY PI DAY]~~
 5. ~~put in object model (see 2) [ 03/09/2014 now have better encapsulated js objects ]~~
 6. ~~delete points [done 3/15/2014]~~
@@ -29,6 +29,7 @@
 12. ~~Added sprite for the path simulator object [done 3/30/2014]~~
 13. Need to describe size of sprite in simulator
 14. ~~Added versioning to path info [done 3/30/2014]~~
+15. Think about animation patterns and design.
 
 
 
