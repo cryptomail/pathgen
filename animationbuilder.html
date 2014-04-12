@@ -6,8 +6,8 @@
   <script src="js/knockout-3.1.0.js"></script>
   <script src="js/animationbuilder.js"></script>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-  <script src="//code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="jquery-ui-1.10.4/jquery-1.10.2.js"></script>
+    <script src="jquery-ui-1.10.4/ui/jquery-ui.js"></script>
   <script src="js/jquery.growl.js" type="text/javascript"></script>
   <link href="css/jquery.growl.css" rel="stylesheet" type="text/css" />
  
@@ -16,71 +16,80 @@
  
 <div id="tabs">
   <ul>
-    <li><a href="#animationnames">Animation Names</a></li>
+
     <li><a href="#keyframes">Key Frames</a></li>
-    <li><a href="#timeblocks">Time Blocks</a></li>
+
     <li><a href="#testing">Testing!</a></li>
     <li><a href="#json">JSON output</a></li>
   </ul>
-  <div id="animationnames">
-  	<p>Manage the animation names.</p><p>  Start to add  your robot, or a chicken, or a butterfly!  Specify the width and height of your sprite.</p>
-  	<label for="selectedanimationname">Animation Name</label>
-    <input data-bind="value: selectedanimationname" name="selectedanimationname" id="animationname" length="30"/>
-    <label for="width">Width</label>
-    <input data-bind="value: selectedanimationwidth" name="width" id="width" size="4" type="number" length="4"/>
-    <label for="height">Height</label>
-    <input data-bind="value: selectedanimationheight" name="height" id="height" size="4" type="number" length="4"/>
-    <button data-bind="click: addAnimationName" id="addanimationname">add</button>
-    <select data-bind="options: availableanimations, value:optionsanimationname" id="animationnames"></select>
-    <button data-bind="click: removeAnimationName"  id="removeanimationname">remove</button><br>
-    </select>
-  </div>
+
   <div id="keyframes">
-    <p>Managing the animation key frames for: <input data-bind="value: selectedanimationname"  id="keyframeanimationname" readonly/></p><p>Specify a key frame block name describing the segment of an animation, example: walk-up, walk-down, walk-left, walk-right.  Then specify the source images of each.</p>
-    <label for="keyframeblockname">Key Frame Block Name</label>
-    <input name="keyframeblockname" id="keyframeblockname" length="30"/>
-    <button id="addkeyframeblockname">add</button>
-    
+    <p>Managing the animation key frames for: <input data-bind="value: editanimation().name "  id="keyframeanimationname"/>
+
+      <button data-bind="click: addAnimationName" id="addanimationname">add</button>
+        <select data-bind="options: animations,
+                       optionsText: 'name',
+                       value: selectedanimation,
+                       attr:{size: 2}"></select>
+        <button data-bind="click: removeAnimationName" id="removeanimationname">remove</button></p>
+
+<p>What's the width and height of &quot;<label data-bind="text:editanimation().name" id="animationname"></label>&quot;
+    <label for="keyframeblockwidth">Width</label>
+    <input data-bind="value:editanimation().width" name="keyframeblockwidth" id="keyframeblockwidth" length="5"/>
+    <label for="keyframeblockwidth">Height</label>
+    <input data-bind="value:editanimation().height" name="keyframeblockheight" id="keyframeblockheight" length="5"/>
+    <br>
+</p>
+      <p>Specify a key frame block name and dimentions, and describe the segment of an animation, example: walk-up, walk-down, walk-left, walk-right.
+          <br>Then specify the source images of each.</p>
+
+      <br><br>
+      <label for="keyframeblockname">Key Frame Block Name</label>
+    <input data-bind="value:editanimation().editkeyframeblock().name" name="keyframeblockname" id="keyframeblockname" length="30"/>
+    <button data-bind="click: addKeyFrameBlock" id="addkeyframeblockname">add</button>
 
 
-    <select name="keyframeblocknames" multiple="true">
-    	</select>
-    	<button id="removekeyframeblockname">remove</button>
+      <select  data-bind="options: editanimation().keyFrameBlocks,
+                       optionsText: 'name',
+                       value: selectedkeyframeblock,
+                       attr:{size: 2}" id="keyframeblocknameoptions"></select>
+    	<button data-bind="click: removeKeyFrameBlock" id="removekeyframeblockname">remove</button>
     <br>
   
-    <label for="keyframesrc">image source:</label>
-    <input name="keyframesource" id="keyframesource" length="30"/>
-    <button id="addimagesource">add</button>
+    <label for="keyframesource">image source:</label>
+    <input data-bind="value:editanimation().editkeyframeblock().editimagesrc" name="keyframesource" id="keyframesource" length="30"/>
+    <button data-bind="click: addImageSource" id="addimagesource">add</button>
    
    
-    <select name="keyframesrcs" multiple="true">
+    <select data-bind="options: editanimation().editkeyframeblock().imageSrcs,
+                       value: selectedimagesrc,
+                       attr:{size: 2}" id="keyframesrcs" name="keyframesrcs" >
     	</select>
-   <button id="removeimagesource">remove</button>
-	
-  </div>
-  <div id="timeblocks">
-     <p>Managing the animation time blocks for: <input id="timeblockframeanimationname" readonly/></p><p>Specify a time frame name describing the segment speed, example: fast or slow.  <br>Then specify the time to spend on each frame.</p>
+   <button data-bind="click: removeImageSource" id="removeimagesource">remove</button>
 
-     <label for="timeblockname">Time Block Name</label>
-    <input name="timeblockname" id="timeblockname" length="30"/>
+<br><br>
+      <label for="timeblockname">Time Block Name</label>
+      <input name="timeblockname" id="timeblockname" length="30"/>
 
-    	<button id="addtimeblockname">add</button>
-    
-    <select name="timeblocknames" multiple="true">
-    	</select>
-    	<button id="removetimeblockname">remove</button>
-    
-    <br><br>
-    <label for="timevalues">Time</label>
-    <input name="timevalues"/>ms
-    
-    <button id="addtimeblockvalue">add</button>
-    
-    
-    <select name="timeblockvalues" multiple="true">
-    	</select>
-    <button id="removetimeblockvalue">remove</button>
+      <button id="addtimeblockname">add</button>
+
+      <select name="timeblocknames" multiple="true">
+      </select>
+      <button id="removetimeblockname">remove</button>
+
+      <br><br>
+      <label for="timevalues">Time</label>
+      <input id="timevalues" name="timevalues"/>ms
+
+      <button id="addtimeblockvalue">add</button>
+
+
+      <select name="timeblockvalues" multiple="true">
+      </select>
+      <button id="removetimeblockvalue">remove</button>
+
   </div>
+
 
 <div id="testing">
 	<label for="testingselectedanimationname">Animation: </label>
