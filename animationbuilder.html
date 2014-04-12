@@ -59,7 +59,7 @@
     <label for="keyframesource">image source:</label>
     <input data-bind="value:editanimation().editkeyframeblock().editimagesrc" name="keyframesource" id="keyframesource" length="30"/>
     <button data-bind="click: addImageSource" id="addimagesource">add</button>
-   
+   <br>
    
     <select data-bind="options: editanimation().editkeyframeblock().imageSrcs,
                        value: selectedimagesrc,
@@ -67,15 +67,19 @@
     	</select>
    <button data-bind="click: removeImageSource" id="removeimagesource">remove</button>
 
+<img border="5" data-bind="attr:{src:editanimation().editkeyframeblock().editimagesrc(), width:editanimation().width, height:editanimation().height}"/>
 <br><br>
       <label for="timeblockname">Time Block Name</label>
-      <input name="timeblockname" id="timeblockname" length="30"/>
+      <input data-bind="value:editanimation().edittimeblock().name" name="timeblockname" id="timeblockname" length="30"/>
 
-      <button id="addtimeblockname">add</button>
+      <button data-bind="click: addTimeBlock" id="addtimeblockname">add</button>
 
-      <select name="timeblocknames" multiple="true">
+      <select data-bind="options: editanimation().timeBlocks,
+                       optionsText: 'name',
+                       value: selectedtimeblock,
+                       attr:{size: 2}" id="timeblocknames" name="timeblocknames" multiple="true">
       </select>
-      <button id="removetimeblockname">remove</button>
+      <button data-bind="click: removeTimeBlock" id="removetimeblockname">remove</button>
 
       <br><br>
       <label for="timevalues">Time</label>
