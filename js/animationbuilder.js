@@ -3,24 +3,50 @@
  */
 "use strict";
 
+function randid()
+{
+    return Math.random().toString(36).substring(7);
+}
+function TimeValue(id, val)
+{
+    this.id = id;
+    this.val = ko.observable(val);
+}
 function TimeBlock(par,name)
 {
     this.name = name;
     this.par = par;
-    this.edittime = ko.observable("");
+    this.edittime = ko.observable(new TimeValue(randid(),0));
     this.times = ko.observableArray([]);
 
     this.addTime = function()
     {
-        if(this.edittime == null || this.edittime() == null || this.edittime().length <= 0)
+        if(this.edittime == null || this.edittime() == null || this.edittime().val <= 0)
         {
             return;
         }
-        this.times.push(this.edittime());
+        var newObject = new TimeValue(randid(),this.edittime().val())
+
+        this.times.push(newObject);
+
+
+    }
+    this.findTimeById = function(id)
+    {
+        var x,n;
+        n = this.times().length;
+        for(x=0;x<n;x++)
+        {
+            if(this.times()[x].id == id)
+            {
+                return x;
+            }
+        }
+        return -1;
     }
     this.removeTime = function()
     {
-        var idx = this.times().indexOf(this.edittime());
+        var idx = this.findTimeById(this.par.par.selectedtime().id);
         if(idx < 0)
         {
             animationbuilder._emitError(3);
@@ -30,10 +56,7 @@ function TimeBlock(par,name)
         if (idx > -1) {
             this.times.splice(idx, 1);
         }
-        if(this.times().length > 0)
-        {
-            this.par.par.selectedtime(this.times()[0]);
-        }
+
     }
 }
 function KeyFrameBlock(par,name)
@@ -98,6 +121,10 @@ function Animation(p,n,w,h)
     {
         this.editkeyframeblock().editimagesrc(newvalue);
     },
+    this.optionsTimeChanged = function(newvalue)
+    {
+
+    }
     this.optionsKeyBlockChanged =  function(newvalue)
     {
         if(!newvalue)
@@ -237,6 +264,17 @@ function Animation(p,n,w,h)
         }
     }
 
+    this.addTime = function()
+    {
+
+        this.edittimeblock().addTime();
+
+    }
+    this.removeTime = function()
+    {
+        this.edittimeblock().removeTime();
+    }
+
 }
 
 var animationbuilder = {
@@ -248,9 +286,7 @@ var animationbuilder = {
     selectedkeyframeblock:ko.observable({}),
     selectedimagesrc:ko.observable(""),
     selectedtimeblock:ko.observable({}),
-
-
-
+    selectedtime:ko.observable({}),
     _emitError: function()
     {
         var errormap = {
@@ -302,6 +338,7 @@ var animationbuilder = {
         this.selectedkeyframeblock.subscribe(this.optionsKeyBlockChanged,this);
         this.selectedimagesrc.subscribe(this.optionsImageSourceChanged,this);
         this.selectedtimeblock.subscribe(this.optionsTimeBlockChanged,this);
+        this.selectedtime.subscribe(this.optionsTimeChanged,this);
 		ko.applyBindings(this);
 		$( "#tabs" ).on( "tabsbeforeactivate", this.beforeActivate );
 	},
@@ -316,6 +353,10 @@ var animationbuilder = {
     optionsImageSourceChanged:function(newvalue)
     {
         this.editanimation().optionsImageSourceChanged(newvalue);
+    },
+    optionsTimeChanged:function(newvalue)
+    {
+      this.editanimation().optionsTimeChanged(newvalue);
     },
     optionsKeyBlockChanged: function(newvalue)
     {
@@ -377,6 +418,21 @@ var animationbuilder = {
         }
         return null;
 
+    },
+    addTime:function()
+    {
+        var self = this;
+
+
+        self.editanimation().addTime();
+
+    },
+    removeTime:function()
+    {
+        var self = this;
+
+
+        self.editanimation().removeTime();
     },
 	addAnimationName: function()
 	{
