@@ -83,14 +83,17 @@
 
       <br><br>
       <label for="timevalues">Time</label>
-      <input id="timevalues" name="timevalues"/>ms
+      <input data-bind="value:editanimation().edittimeblock().edittime()? editanimation().edittimeblock().edittime().val:0" id="timevalues" name="timevalues"/>ms
 
-      <button id="addtimeblockvalue">add</button>
+      <button data-bind="click: addTime" id="addtimeblockvalue">add</button>
 
 
-      <select name="timeblockvalues" multiple="true">
+      <select data-bind="options: editanimation().edittimeblock().times,
+                       value: selectedtime,
+                       optionsText: 'val',
+                       attr:{size: 2}" name="timeblockvalues" multiple="true">
       </select>
-      <button id="removetimeblockvalue">remove</button>
+      <button data-bind="click: removeTime" id="removetimeblockvalue">remove</button>
 
   </div>
 
