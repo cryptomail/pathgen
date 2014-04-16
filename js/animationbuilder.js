@@ -287,6 +287,16 @@ var animationbuilder = {
     selectedimagesrc:ko.observable(""),
     selectedtimeblock:ko.observable({}),
     selectedtime:ko.observable({}),
+<<<<<<< HEAD
+=======
+    selectedtestinganimation:ko.observable({}),
+    selectedtestingkeyframeblock:ko.observable({}),
+    selectedtestingtimeblock:ko.observable( {} ),
+    animationrunning:ko.observable(false),
+    animationtestingsource:ko.observable(""),
+    testAnimationTimeout:null,
+    currentTestFrame:0,
+>>>>>>> master
     _emitError: function()
     {
         var errormap = {
@@ -381,6 +391,7 @@ var animationbuilder = {
             this.editanimation(newObject);
         }
 	},
+
 	removeAnimationName: function()
 	{
         var animation = this.findAnimationByName(this.editanimation().name);
@@ -491,6 +502,73 @@ var animationbuilder = {
         var self = this;
         self.editanimation().removeTimeBlock();
 
+<<<<<<< HEAD
+=======
+    },
+    testAnimationFrame: function(par)
+    {
+
+        if(!par.animationrunning())
+        {
+            return;
+        }
+        par.currentTestFrame = par.currentTestFrame + 1;
+
+        par.currentTestFrame = par.currentTestFrame % par.selectedtestingtimeblock().times().length;
+
+
+        par.animationtestingsource(par.selectedtestingkeyframeblock().imageSrcs()[par.currentTestFrame % par.selectedtestingkeyframeblock().imageSrcs().length]);
+
+        par.testAnimationTimeout = setTimeout( function(){par.testAnimationFrame(par);}, par.selectedtestingtimeblock().times()[par.currentTestFrame].val());
+
+    },
+    startAnimation: function()
+    {
+        var self = this;
+        self.stopAnimation();
+
+        self.currentTestFrame = 0;
+
+        if(!(self.selectedtestinganimation() && self.selectedtestingkeyframeblock()))
+        {
+            return;
+        }
+
+        if(self.selectedtestingkeyframeblock().imageSrcs().length <= 0 || self.selectedtestingtimeblock().times().length <=0)
+        {
+            return;
+        }
+
+        self.animationrunning(true);
+        self.animationtestingsource(self.selectedtestingkeyframeblock().imageSrcs()[self.currentTestFrame]);
+
+        self.testAnimationTimeout = setTimeout( function(){self.testAnimationFrame(self);}, self.selectedtestingtimeblock().times()[self.currentTestFrame].val());
+    },
+    stopAnimation: function()
+    {
+        var self = this;
+        if(self.testAnimationTimeout != null)
+        {
+            clearTimeout(self.testAnimationTimeout);
+        }
+        self.animationrunning(false);
+    },
+    startStopAnimationTest: function()
+    {
+        var self = this;
+
+        if(self.animationrunning())
+        {
+            self.stopAnimation();
+        }
+        else
+        {
+            self.startAnimation();
+        }
+
+
+
+>>>>>>> master
     }
 
 };
