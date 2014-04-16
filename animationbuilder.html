@@ -19,8 +19,8 @@
 
     <li><a href="#keyframes">Key Frames</a></li>
 
-    <li><a href="#testing">Testing!</a></li>
-    <li><a href="#json">JSON output</a></li>
+    <li><a href="#testing">Testing and Output</a></li>
+
   </ul>
 
   <div id="keyframes">
@@ -77,7 +77,7 @@
       <select data-bind="options: editanimation().timeBlocks,
                        optionsText: 'name',
                        value: selectedtimeblock,
-                       attr:{size: 2}" id="timeblocknames" name="timeblocknames" multiple="true">
+                       attr:{size: 2}" id="timeblocknames" name="timeblocknames">
       </select>
       <button data-bind="click: removeTimeBlock" id="removetimeblockname">remove</button>
 
@@ -91,7 +91,7 @@
       <select data-bind="options: editanimation().edittimeblock().times,
                        value: selectedtime,
                        optionsText: 'val',
-                       attr:{size: 2}" name="timeblockvalues" multiple="true">
+                       attr:{size: 2}" name="timeblockvalues" >
       </select>
       <button data-bind="click: removeTime" id="removetimeblockvalue">remove</button>
 
@@ -100,17 +100,31 @@
 
 <div id="testing">
 	<label for="testingselectedanimationname">Animation: </label>
-	<select name="testingselectedanimationname" id="testingselectedanimationname">
-    </select>
+    <select id="testingselectedanimationname" data-bind="options: animations,
+                       optionsText: 'name',
+                       value: selectedtestinganimation"></select>
+
+    <label for="testingkeyframeblock">Key Frame Block: </label>
+    <select  id="testingkeyframeblock" data-bind="options: selectedtestinganimation() ? selectedtestinganimation().keyFrameBlocks : [],
+                       optionsText: 'name',
+                       value: selectedtestingkeyframeblock,
+                       attr:{size: 2}"></select>
     <br>
     <label for="testingselectedtimeblockname">Time Block: </label>
-    <select name="testingselectedtimeblockname" id="testingselectedtimeblockname">
-    
+    <select data-bind="options: selectedtestinganimation()?selectedtestinganimation().timeBlocks:[],
+                       optionsText: 'name',
+                       value: selectedtestingtimeblock"  name="testingselectedtimeblockname" id="testingselectedtimeblockname">
     </select>
+
+
+    <select data-bind="options: selectedtestingtimeblock()?selectedtestingtimeblock().times:[],
+                       optionsText: 'val',
+                       attr:{size: 2}" name="timeblockvalues" ></select>
+    <button data-bind="click: startStopAnimationTest, text: animationrunning()?'stop':'start'"  id="startstopanimationtest">test</button>
+
+    <img border="5" data-bind="attr:{src:animationtestingsource(), width:(selectedtestinganimation()?selectedtestinganimation().width:5), height:(selectedtestinganimation()?selectedtestinganimation().height:5)}"/>
 </div>
- <div id="json">
-	output JSON
-</div>
+
  <script>
  $(function() {
     $( "#tabs" ).tabs();
