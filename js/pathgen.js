@@ -40,7 +40,9 @@ Animationsets:
 {
     robot:
     {
-        keyFrames:
+        width:32,
+        height:32,
+        keyFrameBlockMap:
         {
             DVS:
             [
@@ -55,31 +57,25 @@ Animationsets:
                     selectKeyFrame:down
                 }
             ],
-            w:32,
-            h:32,
             up:
-            [
-
-                {
-                    src:"http://pngup1.png"
-                },
-                {
-                    src:"http://pngup2.png"
-                }
-            ],
+            {
+                frames:
+                [
+                    "http://pngup1.png",
+                    "http://pngup2.png"
+                ]
+            },
             down:
-            [
+            {
 
-                {
-                    src:"http://pngdown1.png"
-                },
-                {
-                    src:"http://pngdown2.png"
-
-                }
-            ]
+                frames:
+                [
+                    "http://pngdown1.png",
+                    "http://pngdown2.png"
+                ]
+            }
         }
-        timeBlocks:
+        timeBlockMap:
         {
             fast: [30,30],
             slow: [100,100]
@@ -106,7 +102,7 @@ segment:
 */
 var pathgen = {
     paper:null,
-    editmodes:ko.observableArray(["draw","edit","simulation"]),
+    editmodes:ko.observableArray(["draw","simulation"]),
     selectededitmode:ko.observable("draw"),
     paths:ko.observableArray(),
     selectedpath:ko.observable(""),
@@ -118,8 +114,6 @@ var pathgen = {
     default_sqrt_radius:Math.sqrt(10),
     default_circle_fillcolor: "red",
     default_line_fillcolor: "black",
-    default_circle_hoverincolor: "pink",
-    default_line_hoverincolor: "green",
     default_circle_selectedcolor:"blue",
     pointCounter:0,
     screenwidth:ko.observable(320),
@@ -166,14 +160,14 @@ var pathgen = {
     sizePanels: function(mainwidth, mainheight)
     {
         var spacex = 10;
-        var leftbar = document.getElementById("leftbar");
+        //var leftbar = document.getElementById("leftbar");
 
         mainwidth = parseInt(mainwidth);
         mainheight = parseInt(mainheight);
         var leftbarcss =
         {
 
-            "width":150,
+            "width":0,
             "height":mainheight,
             "border-style":"solid",
             "border-width":"2px",
@@ -182,7 +176,7 @@ var pathgen = {
         };
 
 
-        this.setcssOfElement(leftbarcss,"leftbar");
+        //this.setcssOfElement(leftbarcss,"leftbar");
 
 
         var maincss =
@@ -215,7 +209,7 @@ var pathgen = {
         var bottomcss =
         {
 
-            "width":leftbarcss.width + mainwidth  + maincss["border-width"],
+            "width":  mainwidth+  inputcss["width"]   +  maincss["border-width"],
             "height":100,
             "border-style":"solid",
             "border-width":"2"
@@ -338,11 +332,7 @@ var pathgen = {
         console.log("Edit mode changed to " + editmode);
         var self  = this;
 
-        if(this._isEditModeEdit())
-        {
-            self._setEditModeEdit();
-        }
-        else if(this._isEditModeDraw())
+        if(this._isEditModeDraw())
         {
             self._setEditModeDraw();
         }
@@ -459,10 +449,7 @@ var pathgen = {
     {
         return this.selectededitmode().toLowerCase() == "simulation";
     },
-    _isEditModeEdit: function()
-    {
-        return this.selectededitmode().toLowerCase() == "edit";
-    },
+
     initialize: function()
     {
         var pg = this;
@@ -591,47 +578,7 @@ var pathgen = {
     {
         return this.selectedPoints.indexOf(p) >= 0;
     },
-    /*
-     pointHoverIn
-     */
-    pointHoverIn: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(!pg.isSelected(this))
-        {
-            this.attr({fill:pg.default_circle_hoverincolor});
-        }
-    },
-    /*
-     pointHoverOut
-     */
-    pointHoverOut: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(!pg.isSelected(this))
-        {
-            this.attr({fill:pg.default_circle_fillcolor});
-        }
 
-    },
-    lineHoverIn: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(this && pg)
-        {
-            this.attr({stroke:pg.default_line_hoverincolor});
-        }
-    },
-
-    lineHoverOut: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(this && pg)
-        {
-            this.attr({stroke:pg.default_line_fillcolor});
-        }
-
-    },
 
     /*
      line angle
@@ -678,8 +625,8 @@ var pathgen = {
 
         line.data("description", "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + line.data("intervaltime") + "ms");
 
-        line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
-        line.click(pg.lineClicked);
+
+
         line.data("parentPathGen",pg);
         return line;
     },
@@ -690,118 +637,8 @@ var pathgen = {
        v = "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + intervaltime + "s";
        return v;
     },
-    _rotationPanelOK: function(currentpoint)
-    {
-        currentpoint.data("rotation",currentpoint.data("parentPathGen").defaultrotation());
 
 
-        var elmtTable = document.getElementById('leftbarbody');
-        var tableRows = elmtTable.getElementsByTagName('tr');
-        var rowCount = tableRows.length;
-        var x = 0;
-        for (x=rowCount-1; x>0; x--) {
-            elmtTable.removeChild(tableRows[x]);
-        }
-
-        if(x == 0 && tableRows.length > 0)
-        {
-
-            tableRows[x].innerHTML="<td class=\"description\" data-bind=\"text: data('description')\"></td>";
-        }
-
-
-        var segments = this._findSegmentsFromPoint(currentpoint);
-
-        if(segments != null && segments.length > 0)
-        {
-
-            var p1,p2,c1,c2,intervaltime;
-
-
-            for(x=0; x < segments.length; x++)
-            {
-                p1 = segments[x].data("p1");
-                p2 = segments[x].data("p2");
-                c1 = segments[x].data("c1");
-                c2 = segments[x].data("c2");
-                intervaltime = segments[x].data("intervaltime");
-                segments[x].data("description",this._makeDescription(p1,p2,c1,c2,intervaltime));
-            }
-        }
-
-        /*
-        var alist = elmtTable.getElementsByTagName("td");
-        if(alist != null && alist.length > 0)
-        {
-            var x,n;
-            n = alist.length;
-            for(x=0; x < n; x++)
-            {
-                alist[x].innerHTML='';
-            }
-
-        }*/
-        ko.cleanNode(document.getElementById("leftbar"));
-        ko.applyBindings(currentpoint.data("parentPathGen"), document.getElementById("leftbar"));
-    },
-    _linePanelOK: function(currentline)
-    {
-        currentline.data("intervaltime",currentline.data("parentPathGen").defaulttime());
-        currentline.data("parentPathGen").modified(true);
-        var c1 = currentline.data("c1");
-        var c2 = currentline.data("c2");
-
-        currentline.data("description", "(" + currentline.data("p1").x + "," + currentline.data("p1").y +  "@" + c1.data("rotation") + ")" + "," + "(" + currentline.data("p2").x + "," + currentline.data("p2").y +  "@" + c2.data("rotation") + ")" + " :" + currentline.data("intervaltime") + "s");
-        var elmtTable = document.getElementById('leftbarbody');
-        var tableRows = elmtTable.getElementsByTagName('tr');
-        var rowCount = tableRows.length;
-        for (var x=rowCount-1; x>0; x--) {
-          elmtTable.removeChild(tableRows[x]);
-        }
-        var alist = elmtTable.getElementsByTagName("td");
-        if(alist != null && alist.length > 0)
-        {
-            var x,n;
-            n = alist.length;
-            for(x=0; x < n; x++)
-            {
-               alist[x].innerHTML='';
-            }
-              
-        }
-        ko.cleanNode(document.getElementById("leftbar"));
-        ko.applyBindings(currentline.data("parentPathGen"), document.getElementById("leftbar"));
-
-    },
-    lineClicked: function(e)
-    {
-        var currentline;
-        currentline = this;
-        var pg = this.data("parentPathGen");
-        if(pg._isEditModeSimulation())
-        {
-            return false;
-        }
-        e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
-
-        document.getElementById("dialog-form-time").style.visibility="visible";
-        $('#dialog-time').keypress(function(e) {
-        if (e.keyCode == $.ui.keyCode.ENTER) {
-            
-            $(this).dialog("close");
-            e.preventDefault();
-            if(currentline && currentline.data("parentPathGen"))
-            {
-                currentline.data("parentPathGen")._linePanelOK(currentline);
-
-                currentline = null;
-            }
-            return false;
-        }
-        });
-        $("#dialog-time").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); if(currentline){currentline.data("parentPathGen")._linePanelOK(currentline);}} } ] });
-        
-    },
     _rebuildSegments: function()
     {
 
@@ -848,7 +685,7 @@ var pathgen = {
         var pg = this;
         pg.modified(true);
         var circle = pg.paper.circle(x,y,pg.default_circle_radius);
-        circle.hover(pg.pointHoverIn,pg.pointHoverOut,circle,circle);
+
         circle.data("pointId",pg.pointCounter);
         circle.data("parentPathGen",pg);
         circle.data("rotation",pg.defaultrotation());
@@ -860,7 +697,7 @@ var pathgen = {
 
         circle.attr("fill",pg.default_circle_fillcolor);
         circle.click(pg.pointClicked);
-        circle.dblclick(pg.pointDoubleClicked);
+
         pg.paper.set(circle).drag(pg.pointDragMove,pg.pointDragStart,pg.pointDragEnd);
         pg.pointlist.push(circle);
         if(pg.pointlist.length > 1)
@@ -904,16 +741,7 @@ var pathgen = {
             return;
         }
 
-        if(this.parentPathGen._isEditModeEdit())
-        {
-
-            {
-                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            }
-            return false;
-
-        }
-        else if(this.parentPathGen._isEditModeSimulation())
+        if(this.parentPathGen._isEditModeSimulation())
         {
             if(this.parentPathGen.simulationrunning)
             {
@@ -1079,16 +907,7 @@ var pathgen = {
             return;
         }
 
-        if(this.parentPathGen._isEditModeEdit())
-        {
-            //if((!this.parentPathGen.pointlist) || (this.parentPathGen.pointlist && this.parentPathGen.pointlist.length < 5))
-            {
-                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            }
-            return false;
-
-        }
-        else if(this.parentPathGen._isEditModeDraw())
+        if(this.parentPathGen._isEditModeDraw())
         {
             if(this.parentPathGen.mousedown)
             {
@@ -1128,10 +947,7 @@ var pathgen = {
     _performMouseUp: function()
     {
         var self = this;
-        if( self._isEditModeEdit())
-        {
-            return false;
-        }
+
         self.mousedown = false;
         if(self.captureinterval)
         {
@@ -1234,34 +1050,7 @@ var pathgen = {
         this.parentPathGen.currentX = e.offsetX;
         this.parentPathGen.currentY = e.offsetY;
     },
-    pointDoubleClicked: function(e)
-    {
-        var currentpoint;
-        currentpoint = this;
-        var pg = this.data("parentPathGen");
-        if(pg._isEditModeSimulation())
-        {
-            return false;
-        }
-        e.preventDefault();
-        document.getElementById("dialog-form-rotation").style.visibility="visible";
-        $('#dialog-rotation').keypress(function(e) {
-        if (e.keyCode == $.ui.keyCode.ENTER) {
-            
-            $(this).dialog("close");
-            e.preventDefault();
-            if(currentpoint && currentpoint.data("parentPathGen"))
-            {
-                currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);
 
-                currentpoint = null;
-            }
-            return false;
-        }
-        });
-        $("#dialog-rotation").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); if(currentpoint){currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);}} } ] });
-        
-    },
     pointClicked: function(e)
     {
 
@@ -1645,14 +1434,7 @@ var pathgen = {
             {
                 self._stopSimulation();
             }
-            else if(self._isEditModeDraw())
-            {
-                self.selectededitmode("edit");
-            }
-            else if(self._isEditModeEdit())
-            {
 
-            }
             var obj = self.editor.get();
             self._pathFromJSON(obj);
             self.editor.set(obj);

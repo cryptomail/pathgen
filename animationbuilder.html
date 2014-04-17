@@ -5,6 +5,9 @@
   <title>Animation Builder</title>
   <script src="js/knockout-3.1.0.js"></script>
   <script src="js/animationbuilder.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/animationbuilder.css">
+    <link rel="stylesheet" type="text/css" href="jsoneditor/jsoneditor-min.css">
+    <script type="text/javascript" src="jsoneditor/jsoneditor-min.js"></script>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
     <script src="jquery-ui-1.10.4/jquery-1.10.2.js"></script>
     <script src="jquery-ui-1.10.4/ui/jquery-ui.js"></script>
@@ -123,6 +126,13 @@
     <button data-bind="click: startStopAnimationTest, text: animationrunning()?'stop':'start'"  id="startstopanimationtest">test</button>
 
     <img border="5" data-bind="attr:{src:animationtestingsource(), width:(selectedtestinganimation()?selectedtestinganimation().width:5), height:(selectedtestinganimation()?selectedtestinganimation().height:5)}"/>
+
+    <br>
+
+    <button data-bind="click:onOutputAllAnimations">output all</button>
+    <div id="outereditor" class="inputarea">
+        <div id="jsoneditor"  class="inputarea"> </div>
+    </div>
 </div>
 
  <script>

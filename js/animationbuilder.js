@@ -19,6 +19,21 @@ function TimeBlock(par,name)
     this.edittime = ko.observable(new TimeValue(randid(),0));
     this.times = ko.observableArray([]);
 
+    this.toAnimationSetObject = function()
+    {
+        var obj = {};
+        obj.name= name;
+        obj.frames = [];
+        var x,n;
+        n = this.times().length;
+        for(x=0;x <n; x++)
+        {
+            obj.frames.push(this.times()[x].val());
+        }
+
+        return obj;
+
+    }
     this.addTime = function()
     {
         if(this.edittime == null || this.edittime() == null || this.edittime().val <= 0)
@@ -94,6 +109,22 @@ function KeyFrameBlock(par,name)
             this.par.par.selectedimagesrc(this.imageSrcs()[0]);
         }
     }
+
+    this.toAnimationSetObject = function()
+    {
+        var obj = {};
+        obj.name = this.name;
+        var x,n;
+
+        n = this.imageSrcs().length;
+        obj.frames = [];
+        for(x=0; x < n; x++)
+        {
+            obj.frames.push(this.imageSrcs()[x]);
+        }
+
+        return obj;
+    }
 }
 function Animation(p,n,w,h)
 {
@@ -107,6 +138,33 @@ function Animation(p,n,w,h)
     this.edittimeblock = ko.observable(new TimeBlock(this,""));
 
 
+    this.toAnimationSetObject = function()
+    {
+        var obj = {};
+        obj.width = this.width();
+        obj.height = this.height();
+        obj.name = this.name;
+        obj.keyFrameBlockMap = {};
+
+        var x,n;
+        n = this.keyFrameBlocks().length;
+        for(x=0; x < n; x++)
+        {
+            var kfb = this.keyFrameBlocks()[x].toAnimationSetObject();
+            obj.keyFrameBlockMap[kfb.name] = kfb.frames;
+        }
+
+        obj.timeBlockMap = {};
+        n = this.timeBlocks().length;
+
+        for(x=0; x < n; x++)
+        {
+            var tbm  = this.timeBlocks()[x].toAnimationSetObject();
+            obj.timeBlockMap[tbm.name] = tbm.frames;
+        }
+
+        return obj;
+    }
     this.addImageSource = function()
     {
         this.editkeyframeblock().addImageSource();
@@ -347,6 +405,20 @@ var animationbuilder = {
         this.selectedtimeblock.subscribe(this.optionsTimeBlockChanged,this);
         this.selectedtime.subscribe(this.optionsTimeChanged,this);
 		ko.applyBindings(this);
+
+        var container = document.getElementById("jsoneditor");
+        var options = {
+            mode: 'code',
+            modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
+            error: function (err) {
+                alert(err.toString());
+            }
+        };
+
+        this.editor = new jsoneditor.JSONEditor(container,options);
+
+
+
 		$( "#tabs" ).on( "tabsbeforeactivate", this.beforeActivate );
 	},
     addKeyFrameBlock:function()
@@ -563,6 +635,37 @@ var animationbuilder = {
 
 
 
+    },
+
+    toJSONObject: function(name)
+    {
+        var obj = {};
+        obj.name = name;
+        return obj;
+
+    },
+    onOutputAllAnimations: function()
+    {
+        var self = this;
+        var obj = {};
+        var x,n;
+        n = self.animations().length;
+
+        for(x=0; x < n; x++)
+        {
+            var a = self.animations()[x];
+
+            var aobj = a.toAnimationSetObject();
+
+            obj[aobj.name] = aobj;
+            delete aobj.name;
+        }
+
+        self.editor.set(obj);
+
     }
+
+
+
 
 };
