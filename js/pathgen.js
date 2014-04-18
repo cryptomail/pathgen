@@ -58,22 +58,20 @@ Animationsets:
                 }
             ],
             up:
-            {
-                frames:
-                [
+            [
+
                     "http://pngup1.png",
                     "http://pngup2.png"
-                ]
-            },
-            down:
-            {
 
-                frames:
-                [
+            ],
+            down:
+            [
+
+
                     "http://pngdown1.png",
                     "http://pngdown2.png"
-                ]
-            }
+
+            ]
         }
         timeBlockMap:
         {
@@ -88,8 +86,8 @@ Then a path will reference it by:
 Path:
 {
     defaultAnimationSet:robot,
-    defaultAnimationTimeBlock:fast,
-    defaultAnimationKeyFrameBlock:null,DVS
+    defaultAnimationSetTimeBlock:fast,
+    defaultAnimationSetKeyFrameBlock:null,DVS
 }
 
 Then a segment may switch the animation block by:
@@ -128,7 +126,6 @@ var pathgen = {
     drawdirections:null,
     mousedown:false,
     bgimg:ko.observable(""),
-    spriteimg:ko.observable(""),
     captureinterval:null,
     currentX:0,
     currentY:0,
@@ -140,8 +137,13 @@ var pathgen = {
     simulatorsegmentidx:0,
     pathgenversion:"1",
     animationinterval:null,
-    animationidx:0,
-
+    animationsets:null,
+    defaultAnimationSet:null,
+    defaultAnimationSetTimeBlock:null,
+    defaultAnimationSetKeyFrameBlock:null,
+    currentAnimationFrameIndex:0,
+    currentAnimationKeyFrameBlock:null,
+    currentAnimationTimeBlock:null,
     /*
      Initializes pathgen object.
      */
@@ -160,28 +162,14 @@ var pathgen = {
     sizePanels: function(mainwidth, mainheight)
     {
         var spacex = 10;
-        //var leftbar = document.getElementById("leftbar");
 
         mainwidth = parseInt(mainwidth);
         mainheight = parseInt(mainheight);
-        var leftbarcss =
-        {
-
-            "width":0,
-            "height":mainheight,
-            "border-style":"solid",
-            "border-width":"2px",
-            "overflow":"scroll"
-
-        };
-
-
-        //this.setcssOfElement(leftbarcss,"leftbar");
 
 
         var maincss =
         {
-            "left":leftbarcss.width + spacex,
+            "left":spacex,
             "width":mainwidth,
             "height":mainheight,
             "border-style":"solid",
@@ -197,7 +185,7 @@ var pathgen = {
         {
 
             "top":8,
-            "left":leftbarcss.width + mainwidth + spacex + maincss["border-width"],
+            "left":  mainwidth + spacex + maincss["border-width"],
             "width":400,
             "height":mainheight,
             "border-style":"solid",
@@ -208,7 +196,9 @@ var pathgen = {
 
         var bottomcss =
         {
-
+            "position":"fixed",
+            "top":mainheight + maincss["border-width"]*4,
+            "left":spacex,
             "width":  mainwidth+  inputcss["width"]   +  maincss["border-width"],
             "height":100,
             "border-style":"solid",
@@ -796,29 +786,38 @@ var pathgen = {
 
         self.simulatorset = self.paper.set();
 
-        var simulatorpoint;
-        var url = null;
-        if(self.spriteimg() != null && self.spriteimg().length > 0)
+        var simulatorpoint = null;
+
+        /*
+        If an animation: simulatorpoint = self.paper.image(url,0,0,32,32);
+         */
+        var animating = false;
+        if(self.animationsets != null  && self.defaultAnimationSet != null && self.defaultAnimationSetKeyFrameBlock != null && self.defaultAnimationSetTimeBlock != null)
         {
-            url = self.spriteimg();
+
+           var frameset = self.animationsets[self.defaultAnimationSet];
+           if(frameset != null && frameset.keyFrameBlockMap && frameset.timeBlockMap)
+           {
+               self.currentAnimationKeyFrameBlock = frameset.keyFrameBlockMap[self.defaultAnimationSetKeyFrameBlock];
+               self.currentAnimationTimeBlock = frameset.timeBlockMap[self.defaultAnimationSetTimeBlock];
+               self.currentAnimationFrameIndex = 0;
+               if(self.currentAnimationKeyFrameBlock && self.currentAnimationTimeBlock &&
+                   self.currentAnimationKeyFrameBlock.length > 0 && self.currentAnimationTimeBlock.length > 0)
+               {
+                   var url = self.currentAnimationKeyFrameBlock[self.currentAnimationFrameIndex];
+                   if(url && url.length > 0)
+                   {
+                     simulatorpoint = self.paper.image(url,0,0,frameset.width,frameset.height);
+                       animating = true;
+                   }
+               }
+           }
         }
-        else
-        {
-            url = null;
-        }
-        if(url==null)
+        if(simulatorpoint == null)
         {
             simulatorpoint = self.paper.circle(0,0,self.default_circle_radius);
             simulatorpoint.attr("fill",self.default_circle_fillcolor);
-
-            
         }
-        else
-        {
-            simulatorpoint = self.paper.image(url,0,0,32,32);
-
-        }
-
         simulatorpoint.data(("parentPathGen"),self);
         self.simulatorset.push(simulatorpoint);
         self.simulatorset.translate(self.pointlist[0].attr("cx"),self.pointlist[0].attr("cy"));
@@ -827,29 +826,27 @@ var pathgen = {
         
         self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
         self.simulatorsegmentidx = -1;
-
-        //self.animationinterval = setInterval(self.onAnimationTimer,1000);
+        if(animating)
+        {
+            self.animationinterval = setTimeout(function(){self.onAnimationTimer(self);},self.currentAnimationTimeBlock[self.currentAnimationFrameIndex]);
+        }
 
     },
-    onAnimationTimer: function()
+    onAnimationTimer: function(par)
     {
 
-        var self = this;
-        var pg = self.pathgen;
-        pg.animationidx = (pg.animationidx + 1) % 2;
-        var url = "";
-        /*
-        if(pg.animationidx == 0)
-        {
-            url = "http://img1.wikia.nocookie.net/__cb20121111052818/animalcrossing/images/4/46/Agrias_Butterfly_%28Wild_World%29.png"
-        }
-        else
-        {
-            url = "http://img1.wikia.nocookie.net/__cb20111124034142/animalcrossing/images/1/1a/Grasshopper_%28Wild_World%29.gif";
-        }
-        pg.simulatorset[0].attr({src:url});
-        console.log("onAnimationTimer")
-        */
+        par.currentAnimationFrameIndex = par.currentAnimationFrameIndex + 1;
+
+        par.currentAnimationFrameIndex = par.currentAnimationFrameIndex % par.currentAnimationTimeBlock.length;
+
+        var url = par.currentAnimationKeyFrameBlock[par.currentAnimationFrameIndex];
+
+        var timeout = par.currentAnimationTimeBlock[par.currentAnimationFrameIndex % par.currentAnimationTimeBlock.length];
+
+        par.animationinterval  = setTimeout(function(){par.onAnimationTimer(par);},par.currentAnimationTimeBlock[par.currentAnimationFrameIndex]);
+
+        par.simulatorset[0].attr({src:url});
+
         return;
     },
     _segmentDone: function()
@@ -987,7 +984,7 @@ var pathgen = {
         {
             return false;
         }
-        if( self.parentPathGen._isEditModeDraw() && !e.toElement.nodeName == "svg")
+        if( self.parentPathGen._isEditModeDraw() && e.toElement && !e.toElement.nodeName == "svg")
         {
             console.log("mouse out");
             self.parentPathGen._performMouseUp();
@@ -1302,7 +1299,6 @@ var pathgen = {
         obj.defaultInterval = this.defaulttime()  + "";
         obj.defaultRotation = this.defaultrotation();
         obj.bgImg = this.bgimg();
-        obj.spriteImg = this.spriteimg();
         obj.segmentList = [];
 
         this.segmentlist().forEach( 
@@ -1373,7 +1369,10 @@ var pathgen = {
         {
             self.paths.push(obj.pathName);
         }
-
+        self.animationsets = obj.animationSets;
+        self.defaultAnimationSet = obj.defaultAnimationSet;
+        self.defaultAnimationSetKeyFrameBlock = obj.defaultAnimationSetKeyFrameBlock;
+        self.defaultAnimationSetTimeBlock = obj.defaultAnimationSetTimeBlock;
         self.screenheight(obj.screenHeight);
         self.screenwidth(obj.screenWidth);
         self.defaulttime(obj.defaultInterval);
@@ -1420,7 +1419,7 @@ var pathgen = {
 
         self.mapofpaths[self.pathName()] = obj;
         self._setbgImg(self.bgimg());
-        self.spriteimg(obj.spriteImg);
+
 
 
 
