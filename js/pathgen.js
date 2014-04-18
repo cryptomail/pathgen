@@ -14,6 +14,12 @@ function sleep(millis, callback) {
         { callback(); }
         , millis);
 }
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 /*
 What is an animation?
 */
@@ -40,7 +46,9 @@ Animationsets:
 {
     robot:
     {
-        keyFrames:
+        width:32,
+        height:32,
+        keyFrameBlockMap:
         {
             DVS:
             [
@@ -55,31 +63,23 @@ Animationsets:
                     selectKeyFrame:down
                 }
             ],
-            w:32,
-            h:32,
             up:
             [
 
-                {
-                    src:"http://pngup1.png"
-                },
-                {
-                    src:"http://pngup2.png"
-                }
+                    "http://pngup1.png",
+                    "http://pngup2.png"
+
             ],
             down:
             [
 
-                {
-                    src:"http://pngdown1.png"
-                },
-                {
-                    src:"http://pngdown2.png"
 
-                }
+                    "http://pngdown1.png",
+                    "http://pngdown2.png"
+
             ]
         }
-        timeBlocks:
+        timeBlockMap:
         {
             fast: [30,30],
             slow: [100,100]
@@ -92,8 +92,8 @@ Then a path will reference it by:
 Path:
 {
     defaultAnimationSet:robot,
-    defaultAnimationTimeBlock:fast,
-    defaultAnimationKeyFrameBlock:null,DVS
+    defaultAnimationSetTimeBlock:fast,
+    defaultAnimationSetKeyFrameBlock:null,DVS
 }
 
 Then a segment may switch the animation block by:
@@ -106,7 +106,7 @@ segment:
 */
 var pathgen = {
     paper:null,
-    editmodes:ko.observableArray(["draw","edit","simulation"]),
+    editmodes:ko.observableArray(["draw","simulation"]),
     selectededitmode:ko.observable("draw"),
     paths:ko.observableArray(),
     selectedpath:ko.observable(""),
@@ -118,8 +118,6 @@ var pathgen = {
     default_sqrt_radius:Math.sqrt(10),
     default_circle_fillcolor: "red",
     default_line_fillcolor: "black",
-    default_circle_hoverincolor: "pink",
-    default_line_hoverincolor: "green",
     default_circle_selectedcolor:"blue",
     pointCounter:0,
     screenwidth:ko.observable(320),
@@ -134,7 +132,6 @@ var pathgen = {
     drawdirections:null,
     mousedown:false,
     bgimg:ko.observable(""),
-    spriteimg:ko.observable(""),
     captureinterval:null,
     currentX:0,
     currentY:0,
@@ -146,14 +143,28 @@ var pathgen = {
     simulatorsegmentidx:0,
     pathgenversion:"1",
     animationinterval:null,
-    animationidx:0,
-
+    animationsets:null,
+    defaultAnimationSet:null,
+    defaultAnimationSetTimeBlock:null,
+    defaultAnimationSetKeyFrameBlock:null,
+    currentAnimationFrameIndex:0,
+    currentAnimationKeyFrameBlock:null,
+    currentAnimationTimeBlock:null,
+    maindivid:null,
+    bottombardivid:null,
+    outereditordivid:null,
+    jsoneditordivid:null,
     /*
      Initializes pathgen object.
      */
 
     setcssOfElement: function(css, target)
     {
+        if(!document.getElementById(target))
+        {
+            return;
+
+        }
         for(var prop in css) {
             document.getElementById(target).style[prop] = css[prop];
         }
@@ -166,62 +177,50 @@ var pathgen = {
     sizePanels: function(mainwidth, mainheight)
     {
         var spacex = 10;
-        var leftbar = document.getElementById("leftbar");
 
         mainwidth = parseInt(mainwidth);
         mainheight = parseInt(mainheight);
-        var leftbarcss =
-        {
-
-            "width":150,
-            "height":mainheight,
-            "border-style":"solid",
-            "border-width":"2px",
-            "overflow":"scroll"
-
-        };
-
-
-        this.setcssOfElement(leftbarcss,"leftbar");
 
 
         var maincss =
         {
-            "left":leftbarcss.width + spacex,
+            "left":spacex,
             "width":mainwidth,
             "height":mainheight,
             "border-style":"solid",
             "border-width":2
         };
 
-        var main = document.getElementById("main");
-        this.setcssOfElement(maincss,"main");
+
+        this.setcssOfElement(maincss,this.maindivid);
 
 
-        var inputarea = document.getElementById("outereditor");
+        var inputarea = document.getElementById(this.outereditordivid);
         var inputcss =
         {
 
             "top":8,
-            "left":leftbarcss.width + mainwidth + spacex + maincss["border-width"],
+            "left":  mainwidth + spacex + maincss["border-width"],
             "width":400,
             "height":mainheight,
             "border-style":"solid",
             "border-width":"2"
         };
 
-        this.setcssOfElement(inputcss,"outereditor");
+        this.setcssOfElement(inputcss,this.outereditordivid);
 
         var bottomcss =
         {
-
-            "width":leftbarcss.width + mainwidth  + maincss["border-width"],
+            "position":"fixed",
+            "top":mainheight + maincss["border-width"]*4,
+            "left":spacex,
+            "width":  mainwidth +  inputcss["width"]   +  maincss["border-width"],
             "height":100,
             "border-style":"solid",
             "border-width":"2"
         };
 
-        this.setcssOfElement(bottomcss,"bottombar");
+        this.setcssOfElement(bottomcss,this.bottombardivid);
 
         this._initCanvas();
 
@@ -237,7 +236,7 @@ var pathgen = {
             container.appendChild(e);
             
         }
-        var container = document.getElementById("jsoneditor");
+        var container = document.getElementById(this.jsoneditordivid);
         var options = {
         mode: 'code',
         modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
@@ -245,9 +244,10 @@ var pathgen = {
           alert(err.toString());
         }
         };
-        
-        this.editor = new jsoneditor.JSONEditor(container,options);
-
+        if(container)
+        {
+            this.editor = new jsoneditor.JSONEditor(container,options);
+        }
 
     },
     requestScreenWidthChange: function(newval)
@@ -264,7 +264,7 @@ var pathgen = {
         this.pointlist = [];
         this.segmentlist.removeAll();
 
-        var element = document.getElementById("main");
+        var element = document.getElementById(this.maindivid);
         if(!element)
         {
             return;
@@ -275,7 +275,7 @@ var pathgen = {
         }
         else
         {
-            this.paper = new Raphael("main","100%","100%");
+            this.paper = new Raphael(this.maindivid,"100%","100%");
         }
 
         var w;
@@ -338,11 +338,7 @@ var pathgen = {
         console.log("Edit mode changed to " + editmode);
         var self  = this;
 
-        if(this._isEditModeEdit())
-        {
-            self._setEditModeEdit();
-        }
-        else if(this._isEditModeDraw())
+        if(this._isEditModeDraw())
         {
             self._setEditModeDraw();
         }
@@ -371,7 +367,7 @@ var pathgen = {
         "When the mouse is released, you will be put into edit mode!"
         self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);
         self.drawdirections.attr({ "font-size": 10, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
-        var element = document.getElementById("main");
+        var element = document.getElementById(this.maindivid);
         element.onclick = null;
         element.onmousedown = pathgen.onPaperMouseDown;
         element.onmouseup = pathgen.onPaperMouseUp;
@@ -404,7 +400,7 @@ var pathgen = {
 
         this._putSimulatorText();
 
-        var element = document.getElementById("main");
+        var element = document.getElementById(self.maindivid);
         element.onclick = pathgen.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
@@ -442,7 +438,7 @@ var pathgen = {
 
         self._initCanvas();
 
-        var element = document.getElementById("main");
+        var element = document.getElementById(self.maindivid);
         element.onclick = pathgen.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
@@ -459,13 +455,14 @@ var pathgen = {
     {
         return this.selectededitmode().toLowerCase() == "simulation";
     },
-    _isEditModeEdit: function()
-    {
-        return this.selectededitmode().toLowerCase() == "edit";
-    },
-    initialize: function()
+
+    initialize: function(maindivid,bottombardivid,outereditordivid,jsoneditordivid)
     {
         var pg = this;
+        pg.maindivid = maindivid;
+        pg.bottombardivid = bottombardivid;
+        pg.outereditordivid = outereditordivid;
+        pg.jsoneditordivid = jsoneditordivid;
         pg.sizePanels(pg.screenwidth(),pg.screenheight());
 
         pg.screenwidth.subscribe(pg.requestScreenWidthChange,pg);
@@ -591,47 +588,7 @@ var pathgen = {
     {
         return this.selectedPoints.indexOf(p) >= 0;
     },
-    /*
-     pointHoverIn
-     */
-    pointHoverIn: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(!pg.isSelected(this))
-        {
-            this.attr({fill:pg.default_circle_hoverincolor});
-        }
-    },
-    /*
-     pointHoverOut
-     */
-    pointHoverOut: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(!pg.isSelected(this))
-        {
-            this.attr({fill:pg.default_circle_fillcolor});
-        }
 
-    },
-    lineHoverIn: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(this && pg)
-        {
-            this.attr({stroke:pg.default_line_hoverincolor});
-        }
-    },
-
-    lineHoverOut: function(e,x,y)
-    {
-        var pg = this.data("parentPathGen");
-        if(this && pg)
-        {
-            this.attr({stroke:pg.default_line_fillcolor});
-        }
-
-    },
 
     /*
      line angle
@@ -678,8 +635,8 @@ var pathgen = {
 
         line.data("description", "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + line.data("intervaltime") + "ms");
 
-        line.hover(pg.lineHoverIn, pg.lineHoverOut,line,line);
-        line.click(pg.lineClicked);
+
+
         line.data("parentPathGen",pg);
         return line;
     },
@@ -690,118 +647,8 @@ var pathgen = {
        v = "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + intervaltime + "s";
        return v;
     },
-    _rotationPanelOK: function(currentpoint)
-    {
-        currentpoint.data("rotation",currentpoint.data("parentPathGen").defaultrotation());
 
 
-        var elmtTable = document.getElementById('leftbarbody');
-        var tableRows = elmtTable.getElementsByTagName('tr');
-        var rowCount = tableRows.length;
-        var x = 0;
-        for (x=rowCount-1; x>0; x--) {
-            elmtTable.removeChild(tableRows[x]);
-        }
-
-        if(x == 0 && tableRows.length > 0)
-        {
-
-            tableRows[x].innerHTML="<td class=\"description\" data-bind=\"text: data('description')\"></td>";
-        }
-
-
-        var segments = this._findSegmentsFromPoint(currentpoint);
-
-        if(segments != null && segments.length > 0)
-        {
-
-            var p1,p2,c1,c2,intervaltime;
-
-
-            for(x=0; x < segments.length; x++)
-            {
-                p1 = segments[x].data("p1");
-                p2 = segments[x].data("p2");
-                c1 = segments[x].data("c1");
-                c2 = segments[x].data("c2");
-                intervaltime = segments[x].data("intervaltime");
-                segments[x].data("description",this._makeDescription(p1,p2,c1,c2,intervaltime));
-            }
-        }
-
-        /*
-        var alist = elmtTable.getElementsByTagName("td");
-        if(alist != null && alist.length > 0)
-        {
-            var x,n;
-            n = alist.length;
-            for(x=0; x < n; x++)
-            {
-                alist[x].innerHTML='';
-            }
-
-        }*/
-        ko.cleanNode(document.getElementById("leftbar"));
-        ko.applyBindings(currentpoint.data("parentPathGen"), document.getElementById("leftbar"));
-    },
-    _linePanelOK: function(currentline)
-    {
-        currentline.data("intervaltime",currentline.data("parentPathGen").defaulttime());
-        currentline.data("parentPathGen").modified(true);
-        var c1 = currentline.data("c1");
-        var c2 = currentline.data("c2");
-
-        currentline.data("description", "(" + currentline.data("p1").x + "," + currentline.data("p1").y +  "@" + c1.data("rotation") + ")" + "," + "(" + currentline.data("p2").x + "," + currentline.data("p2").y +  "@" + c2.data("rotation") + ")" + " :" + currentline.data("intervaltime") + "s");
-        var elmtTable = document.getElementById('leftbarbody');
-        var tableRows = elmtTable.getElementsByTagName('tr');
-        var rowCount = tableRows.length;
-        for (var x=rowCount-1; x>0; x--) {
-          elmtTable.removeChild(tableRows[x]);
-        }
-        var alist = elmtTable.getElementsByTagName("td");
-        if(alist != null && alist.length > 0)
-        {
-            var x,n;
-            n = alist.length;
-            for(x=0; x < n; x++)
-            {
-               alist[x].innerHTML='';
-            }
-              
-        }
-        ko.cleanNode(document.getElementById("leftbar"));
-        ko.applyBindings(currentline.data("parentPathGen"), document.getElementById("leftbar"));
-
-    },
-    lineClicked: function(e)
-    {
-        var currentline;
-        currentline = this;
-        var pg = this.data("parentPathGen");
-        if(pg._isEditModeSimulation())
-        {
-            return false;
-        }
-        e.stopPropagation ? e.stopPropagation() : (e.cancelBubble=true);
-
-        document.getElementById("dialog-form-time").style.visibility="visible";
-        $('#dialog-time').keypress(function(e) {
-        if (e.keyCode == $.ui.keyCode.ENTER) {
-            
-            $(this).dialog("close");
-            e.preventDefault();
-            if(currentline && currentline.data("parentPathGen"))
-            {
-                currentline.data("parentPathGen")._linePanelOK(currentline);
-
-                currentline = null;
-            }
-            return false;
-        }
-        });
-        $("#dialog-time").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); if(currentline){currentline.data("parentPathGen")._linePanelOK(currentline);}} } ] });
-        
-    },
     _rebuildSegments: function()
     {
 
@@ -848,7 +695,7 @@ var pathgen = {
         var pg = this;
         pg.modified(true);
         var circle = pg.paper.circle(x,y,pg.default_circle_radius);
-        circle.hover(pg.pointHoverIn,pg.pointHoverOut,circle,circle);
+
         circle.data("pointId",pg.pointCounter);
         circle.data("parentPathGen",pg);
         circle.data("rotation",pg.defaultrotation());
@@ -860,7 +707,7 @@ var pathgen = {
 
         circle.attr("fill",pg.default_circle_fillcolor);
         circle.click(pg.pointClicked);
-        circle.dblclick(pg.pointDoubleClicked);
+
         pg.paper.set(circle).drag(pg.pointDragMove,pg.pointDragStart,pg.pointDragEnd);
         pg.pointlist.push(circle);
         if(pg.pointlist.length > 1)
@@ -904,16 +751,7 @@ var pathgen = {
             return;
         }
 
-        if(this.parentPathGen._isEditModeEdit())
-        {
-
-            {
-                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            }
-            return false;
-
-        }
-        else if(this.parentPathGen._isEditModeSimulation())
+        if(this.parentPathGen._isEditModeSimulation())
         {
             if(this.parentPathGen.simulationrunning)
             {
@@ -968,29 +806,38 @@ var pathgen = {
 
         self.simulatorset = self.paper.set();
 
-        var simulatorpoint;
-        var url = null;
-        if(self.spriteimg() != null && self.spriteimg().length > 0)
+        var simulatorpoint = null;
+
+        /*
+        If an animation: simulatorpoint = self.paper.image(url,0,0,32,32);
+         */
+        var animating = false;
+        if(self.animationsets != null  && self.defaultAnimationSet != null && self.defaultAnimationSetKeyFrameBlock != null && self.defaultAnimationSetTimeBlock != null)
         {
-            url = self.spriteimg();
+
+           var frameset = self.animationsets[self.defaultAnimationSet];
+           if(frameset != null && frameset.keyFrameBlockMap && frameset.timeBlockMap)
+           {
+               self.currentAnimationKeyFrameBlock = frameset.keyFrameBlockMap[self.defaultAnimationSetKeyFrameBlock];
+               self.currentAnimationTimeBlock = frameset.timeBlockMap[self.defaultAnimationSetTimeBlock];
+               self.currentAnimationFrameIndex = 0;
+               if(self.currentAnimationKeyFrameBlock && self.currentAnimationTimeBlock &&
+                   self.currentAnimationKeyFrameBlock.length > 0 && self.currentAnimationTimeBlock.length > 0)
+               {
+                   var url = self.currentAnimationKeyFrameBlock[self.currentAnimationFrameIndex];
+                   if(url && url.length > 0)
+                   {
+                     simulatorpoint = self.paper.image(url,0,0,frameset.width,frameset.height);
+                       animating = true;
+                   }
+               }
+           }
         }
-        else
-        {
-            url = null;
-        }
-        if(url==null)
+        if(simulatorpoint == null)
         {
             simulatorpoint = self.paper.circle(0,0,self.default_circle_radius);
             simulatorpoint.attr("fill",self.default_circle_fillcolor);
-
-            
         }
-        else
-        {
-            simulatorpoint = self.paper.image(url,0,0,32,32);
-
-        }
-
         simulatorpoint.data(("parentPathGen"),self);
         self.simulatorset.push(simulatorpoint);
         self.simulatorset.translate(self.pointlist[0].attr("cx"),self.pointlist[0].attr("cy"));
@@ -999,29 +846,27 @@ var pathgen = {
         
         self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
         self.simulatorsegmentidx = -1;
-
-        //self.animationinterval = setInterval(self.onAnimationTimer,1000);
+        if(animating)
+        {
+            self.animationinterval = setTimeout(function(){self.onAnimationTimer(self);},self.currentAnimationTimeBlock[self.currentAnimationFrameIndex]);
+        }
 
     },
-    onAnimationTimer: function()
+    onAnimationTimer: function(par)
     {
 
-        var self = this;
-        var pg = self.pathgen;
-        pg.animationidx = (pg.animationidx + 1) % 2;
-        var url = "";
-        /*
-        if(pg.animationidx == 0)
-        {
-            url = "http://img1.wikia.nocookie.net/__cb20121111052818/animalcrossing/images/4/46/Agrias_Butterfly_%28Wild_World%29.png"
-        }
-        else
-        {
-            url = "http://img1.wikia.nocookie.net/__cb20111124034142/animalcrossing/images/1/1a/Grasshopper_%28Wild_World%29.gif";
-        }
-        pg.simulatorset[0].attr({src:url});
-        console.log("onAnimationTimer")
-        */
+        par.currentAnimationFrameIndex = par.currentAnimationFrameIndex + 1;
+
+        par.currentAnimationFrameIndex = par.currentAnimationFrameIndex % par.currentAnimationTimeBlock.length;
+
+        var url = par.currentAnimationKeyFrameBlock[par.currentAnimationFrameIndex];
+
+        var timeout = par.currentAnimationTimeBlock[par.currentAnimationFrameIndex % par.currentAnimationTimeBlock.length];
+
+        par.animationinterval  = setTimeout(function(){par.onAnimationTimer(par);},par.currentAnimationTimeBlock[par.currentAnimationFrameIndex]);
+
+        par.simulatorset[0].attr({src:url});
+
         return;
     },
     _segmentDone: function()
@@ -1079,16 +924,7 @@ var pathgen = {
             return;
         }
 
-        if(this.parentPathGen._isEditModeEdit())
-        {
-            //if((!this.parentPathGen.pointlist) || (this.parentPathGen.pointlist && this.parentPathGen.pointlist.length < 5))
-            {
-                this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            }
-            return false;
-
-        }
-        else if(this.parentPathGen._isEditModeDraw())
+        if(this.parentPathGen._isEditModeDraw())
         {
             if(this.parentPathGen.mousedown)
             {
@@ -1128,10 +964,7 @@ var pathgen = {
     _performMouseUp: function()
     {
         var self = this;
-        if( self._isEditModeEdit())
-        {
-            return false;
-        }
+
         self.mousedown = false;
         if(self.captureinterval)
         {
@@ -1171,7 +1004,7 @@ var pathgen = {
         {
             return false;
         }
-        if( self.parentPathGen._isEditModeDraw() && !e.toElement.nodeName == "svg")
+        if( self.parentPathGen._isEditModeDraw() && e.toElement && !e.toElement.nodeName == "svg")
         {
             console.log("mouse out");
             self.parentPathGen._performMouseUp();
@@ -1234,34 +1067,7 @@ var pathgen = {
         this.parentPathGen.currentX = e.offsetX;
         this.parentPathGen.currentY = e.offsetY;
     },
-    pointDoubleClicked: function(e)
-    {
-        var currentpoint;
-        currentpoint = this;
-        var pg = this.data("parentPathGen");
-        if(pg._isEditModeSimulation())
-        {
-            return false;
-        }
-        e.preventDefault();
-        document.getElementById("dialog-form-rotation").style.visibility="visible";
-        $('#dialog-rotation').keypress(function(e) {
-        if (e.keyCode == $.ui.keyCode.ENTER) {
-            
-            $(this).dialog("close");
-            e.preventDefault();
-            if(currentpoint && currentpoint.data("parentPathGen"))
-            {
-                currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);
 
-                currentpoint = null;
-            }
-            return false;
-        }
-        });
-        $("#dialog-rotation").dialog({ modal:true, buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); if(currentpoint){currentpoint.data("parentPathGen")._rotationPanelOK(currentpoint);}} } ] });
-        
-    },
     pointClicked: function(e)
     {
 
@@ -1513,7 +1319,6 @@ var pathgen = {
         obj.defaultInterval = this.defaulttime()  + "";
         obj.defaultRotation = this.defaultrotation();
         obj.bgImg = this.bgimg();
-        obj.spriteImg = this.spriteimg();
         obj.segmentList = [];
 
         this.segmentlist().forEach( 
@@ -1584,7 +1389,10 @@ var pathgen = {
         {
             self.paths.push(obj.pathName);
         }
-
+        self.animationsets = obj.animationSets;
+        self.defaultAnimationSet = obj.defaultAnimationSet;
+        self.defaultAnimationSetKeyFrameBlock = obj.defaultAnimationSetKeyFrameBlock;
+        self.defaultAnimationSetTimeBlock = obj.defaultAnimationSetTimeBlock;
         self.screenheight(obj.screenHeight);
         self.screenwidth(obj.screenWidth);
         self.defaulttime(obj.defaultInterval);
@@ -1631,7 +1439,7 @@ var pathgen = {
 
         self.mapofpaths[self.pathName()] = obj;
         self._setbgImg(self.bgimg());
-        self.spriteimg(obj.spriteImg);
+
 
 
 
@@ -1645,14 +1453,7 @@ var pathgen = {
             {
                 self._stopSimulation();
             }
-            else if(self._isEditModeDraw())
-            {
-                self.selectededitmode("edit");
-            }
-            else if(self._isEditModeEdit())
-            {
 
-            }
             var obj = self.editor.get();
             self._pathFromJSON(obj);
             self.editor.set(obj);
@@ -1667,6 +1468,43 @@ var pathgen = {
             this._emitError(2, v.toString());
         }
 
+    },
+    _getDataFromURL: function(url)
+    {
+
+        var self = this;
+        $.get('http://jsonp.jit.su/?url=' + encodeURI(url), function(data)
+            {
+
+
+                try
+                {
+                    if(self._isEditModeSimulation())
+                    {
+                        self._stopSimulation();
+                    }
+                    self._pathFromJSON(data);
+                    if(self.editor)
+                    {
+                        self.editor.set(data);
+                    }
+                    if(self._isEditModeSimulation())
+                    {
+                        self._putSimulatorText();
+
+                    }
+                }
+                catch(v)
+                {
+                    self._emitError(2, v.toString());
+                }
+            }
+        );
+
+    },
+    loadFromURL: function(url)
+    {
+        this._getDataFromURL(url);
     }
 
 };

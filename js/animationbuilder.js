@@ -19,6 +19,21 @@ function TimeBlock(par,name)
     this.edittime = ko.observable(new TimeValue(randid(),0));
     this.times = ko.observableArray([]);
 
+    this.toAnimationSetObject = function()
+    {
+        var obj = {};
+        obj.name= name;
+        obj.frames = [];
+        var x,n;
+        n = this.times().length;
+        for(x=0;x <n; x++)
+        {
+            obj.frames.push(this.times()[x].val());
+        }
+
+        return obj;
+
+    }
     this.addTime = function()
     {
         if(this.edittime == null || this.edittime() == null || this.edittime().val <= 0)
@@ -94,37 +109,80 @@ function KeyFrameBlock(par,name)
             this.par.par.selectedimagesrc(this.imageSrcs()[0]);
         }
     }
+
+    this.toAnimationSetObject = function()
+    {
+        var obj = {};
+        obj.name = this.name;
+        var x,n;
+
+        n = this.imageSrcs().length;
+        obj.frames = [];
+        for(x=0; x < n; x++)
+        {
+            obj.frames.push(this.imageSrcs()[x]);
+        }
+
+        return obj;
+    }
 }
 function Animation(p,n,w,h)
 {
-    this.par = p;
-    this.name =n;
-    this.width = ko.observable(w);
-    this.height = ko.observable(h);
+	this.par = p;
+	this.name =n;
+	this.width = ko.observable(w);
+	this.height = ko.observable(h);
     this.keyFrameBlocks= ko.observableArray([]);
     this.timeBlocks = ko.observableArray([]);
     this.editkeyframeblock = ko.observable(new KeyFrameBlock(this,""));
     this.edittimeblock = ko.observable(new TimeBlock(this,""));
 
 
+    this.toAnimationSetObject = function()
+    {
+        var obj = {};
+        obj.width = this.width();
+        obj.height = this.height();
+        obj.name = this.name;
+        obj.keyFrameBlockMap = {};
+
+        var x,n;
+        n = this.keyFrameBlocks().length;
+        for(x=0; x < n; x++)
+        {
+            var kfb = this.keyFrameBlocks()[x].toAnimationSetObject();
+            obj.keyFrameBlockMap[kfb.name] = kfb.frames;
+        }
+
+        obj.timeBlockMap = {};
+        n = this.timeBlocks().length;
+
+        for(x=0; x < n; x++)
+        {
+            var tbm  = this.timeBlocks()[x].toAnimationSetObject();
+            obj.timeBlockMap[tbm.name] = tbm.frames;
+        }
+
+        return obj;
+    }
     this.addImageSource = function()
     {
         this.editkeyframeblock().addImageSource();
 
     },
-        this.removeImageSource = function()
-        {
+    this.removeImageSource = function()
+    {
             this.editkeyframeblock().removeImageSource();
 
-        },
-        this.optionsImageSourceChanged = function(newvalue)
-        {
-            this.editkeyframeblock().editimagesrc(newvalue);
-        },
-        this.optionsTimeChanged = function(newvalue)
-        {
+    },
+    this.optionsImageSourceChanged = function(newvalue)
+    {
+        this.editkeyframeblock().editimagesrc(newvalue);
+    },
+    this.optionsTimeChanged = function(newvalue)
+    {
 
-        }
+    }
     this.optionsKeyBlockChanged =  function(newvalue)
     {
         if(!newvalue)
@@ -140,51 +198,51 @@ function Animation(p,n,w,h)
 
         }
     },
-        this.optionsTimeBlockChanged = function(newvalue)
+    this.optionsTimeBlockChanged = function(newvalue)
+    {
+        if(!newvalue)
+            return;
+
+        var block = this.findTimeBlock(newvalue.name);
+
+
+        if(block)
         {
-            if(!newvalue)
-                return;
+            var newObject = jQuery.extend(true, {}, newvalue);
+            this.edittimeblock(newObject);
 
-            var block = this.findTimeBlock(newvalue.name);
-
-
-            if(block)
-            {
-                var newObject = jQuery.extend(true, {}, newvalue);
-                this.edittimeblock(newObject);
-
-            }
-        },
-        this.findKeyFrameBlock = function(name)
-        {
-            var x;
-            var n;
-            n = this.keyFrameBlocks().length;
-            for(x=0; x < n; x++)
-            {
-                if(this.keyFrameBlocks()[x].name == name)
-                {
-                    return this.keyFrameBlocks()[x];
-                }
-            }
-
-            return null;
-        },
-        this.findTimeBlock = function(name)
-        {
-            var x;
-            var n;
-            n = this.timeBlocks().length;
-            for(x=0; x < n; x++)
-            {
-                if(this.timeBlocks()[x].name == name)
-                {
-                    return this.timeBlocks()[x];
-                }
-            }
-
-            return null;
         }
+    },
+    this.findKeyFrameBlock = function(name)
+    {
+        var x;
+        var n;
+        n = this.keyFrameBlocks().length;
+        for(x=0; x < n; x++)
+        {
+            if(this.keyFrameBlocks()[x].name == name)
+            {
+                return this.keyFrameBlocks()[x];
+            }
+        }
+
+        return null;
+    },
+    this.findTimeBlock = function(name)
+    {
+        var x;
+        var n;
+        n = this.timeBlocks().length;
+        for(x=0; x < n; x++)
+        {
+            if(this.timeBlocks()[x].name == name)
+            {
+                return this.timeBlocks()[x];
+            }
+        }
+
+        return null;
+    }
     this.addKeyFrameBlock = function()
     {
         var self = this;
@@ -225,44 +283,44 @@ function Animation(p,n,w,h)
             this.par.selectedkeyframeblock(newObject);
         }
     },
-        this.addTimeBlock = function()
-        {
-            var self = this;
+    this.addTimeBlock = function()
+    {
+        var self = this;
 
 
-            if(self.edittimeblock().name.length <= 0)
-            {
-                animationbuilder._emitError(3);
-                return;
-            }
-            var block = self.findTimeBlock(self.edittimeblock().name);
-            if(block != null)
-            {
-                animationbuilder._emitError(4);
-                return;
-            }
-            var block = new TimeBlock(self,self.edittimeblock().name);
-            self.timeBlocks.push(block);
-            self.par.selectedtimeblock(block);
-        },
-        this.removeTimeBlock = function()
+        if(self.edittimeblock().name.length <= 0)
         {
-            var block = this.findTimeBlock(this.edittimeblock().name);
-            if(block == null)
-            {
-                animationbuilder._emitError(3);
-                return;
-            }
-            var idx = this.timeBlocks.indexOf(block);
-            if (idx > -1) {
-                this.timeBlocks.splice(idx, 1);
-            }
-            if(this.timeBlocks().length > 0)
-            {
-                var newObject = jQuery.extend(true, {}, this.timeBlocks()[0]);
-                this.par.selectedtimeblock(newObject);
-            }
+            animationbuilder._emitError(3);
+            return;
         }
+        var block = self.findTimeBlock(self.edittimeblock().name);
+        if(block != null)
+        {
+            animationbuilder._emitError(4);
+            return;
+        }
+        var block = new TimeBlock(self,self.edittimeblock().name);
+        self.timeBlocks.push(block);
+        self.par.selectedtimeblock(block);
+    },
+    this.removeTimeBlock = function()
+    {
+        var block = this.findTimeBlock(this.edittimeblock().name);
+        if(block == null)
+        {
+            animationbuilder._emitError(3);
+            return;
+        }
+        var idx = this.timeBlocks.indexOf(block);
+        if (idx > -1) {
+            this.timeBlocks.splice(idx, 1);
+        }
+        if(this.timeBlocks().length > 0)
+        {
+            var newObject = jQuery.extend(true, {}, this.timeBlocks()[0]);
+            this.par.selectedtimeblock(newObject);
+        }
+    }
 
     this.addTime = function()
     {
@@ -278,9 +336,9 @@ function Animation(p,n,w,h)
 }
 
 var animationbuilder = {
-    MAX_ANIMATION_WIDTH:320,
-    MAX_ANIMATION_HEIGHT:240,
-    animations:ko.observableArray([]),
+	MAX_ANIMATION_WIDTH:320,
+	MAX_ANIMATION_HEIGHT:240,
+	animations:ko.observableArray([]),
     selectedanimation:ko.observable({}),
     editanimation:ko.observable(new Animation(this,"",0,0)),
     selectedkeyframeblock:ko.observable({}),
@@ -322,33 +380,47 @@ var animationbuilder = {
             $.growl.error({ message: msg});
         }
     },
-    beforeActivate: function(event,ui)
-    {
-        var self = document.animationbuilder;
-        if(ui.oldPanel.attr("id") == "animationnames")
-        {
+	beforeActivate: function(event,ui)
+	{
+		var self = document.animationbuilder;
+		if(ui.oldPanel.attr("id") == "animationnames")
+		{
 
-            if((!self.editanimation) || (!self.editanimation()) || (self.editanimation().name.length <= 0))
-            {
-                self._emitError(5);
-                return false;
-            }
-        }
+			if((!self.editanimation) || (!self.editanimation()) || (self.editanimation().name.length <= 0))
+			{
+				self._emitError(5);
+				return false;
+			}
+		}
         else if(ui.newPanel.attr("id") == "keyframes")
         {
 
         }
-    },
-    initialize:function()
-    {
+	},
+	initialize:function()
+	{
         this.selectedanimation.subscribe(this.optionsAnimationChanged,this);
         this.selectedkeyframeblock.subscribe(this.optionsKeyBlockChanged,this);
         this.selectedimagesrc.subscribe(this.optionsImageSourceChanged,this);
         this.selectedtimeblock.subscribe(this.optionsTimeBlockChanged,this);
         this.selectedtime.subscribe(this.optionsTimeChanged,this);
-        ko.applyBindings(this);
-        $( "#tabs" ).on( "tabsbeforeactivate", this.beforeActivate );
-    },
+		ko.applyBindings(this);
+
+        var container = document.getElementById("jsoneditor");
+        var options = {
+            mode: 'code',
+            modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
+            error: function (err) {
+                alert(err.toString());
+            }
+        };
+
+        this.editor = new jsoneditor.JSONEditor(container,options);
+
+
+
+		$( "#tabs" ).on( "tabsbeforeactivate", this.beforeActivate );
+	},
     addKeyFrameBlock:function()
     {
         this.editanimation().addKeyFrameBlock();
@@ -363,7 +435,7 @@ var animationbuilder = {
     },
     optionsTimeChanged:function(newvalue)
     {
-        this.editanimation().optionsTimeChanged(newvalue);
+      this.editanimation().optionsTimeChanged(newvalue);
     },
     optionsKeyBlockChanged: function(newvalue)
     {
@@ -373,10 +445,10 @@ var animationbuilder = {
     {
         this.editanimation().optionsTimeBlockChanged(newvalue);
     },
-    optionsAnimationChanged: function(newvalue)
-    {
+	optionsAnimationChanged: function(newvalue)
+	{
         if(!newvalue)
-            return;
+        return;
 
         var animation = this.findAnimationByName(newvalue.name);
 
@@ -387,10 +459,10 @@ var animationbuilder = {
             var newObject = jQuery.extend(true, {}, newvalue);
             this.editanimation(newObject);
         }
-    },
+	},
 
-    removeAnimationName: function()
-    {
+	removeAnimationName: function()
+	{
         var animation = this.findAnimationByName(this.editanimation().name);
         if(animation == null)
         {
@@ -407,7 +479,7 @@ var animationbuilder = {
             this.editanimation(newObject);
 
         }
-    },
+	},
 
 
     findAnimationByName:function(name)
@@ -442,27 +514,27 @@ var animationbuilder = {
 
         self.editanimation().removeTime();
     },
-    addAnimationName: function()
-    {
-        var self = this;
+	addAnimationName: function()
+	{
+		var self = this;
 
 
-        if(self.editanimation().name.length <= 0)
-        {
-            self._emitError(3);
-            return;
-        }
+		if(self.editanimation().name.length <= 0)
+		{
+			self._emitError(3);
+			return;
+		}
         var animation = self.findAnimationByName(self.editanimation().name);
         if(animation != null)
         {
             self._emitError(4);
             return;
         }
-        var animation = new Animation(self,self.editanimation().name,self.editanimation().width(),self.editanimation().height());
-        self.animations.push(animation);
+		var animation = new Animation(self,self.editanimation().name,self.editanimation().width(),self.editanimation().height());
+		self.animations.push(animation);
         self.selectedanimation(animation);
 
-    },
+	},
 
     addImageSource: function()
     {
@@ -563,6 +635,37 @@ var animationbuilder = {
 
 
 
+    },
+
+    toJSONObject: function(name)
+    {
+        var obj = {};
+        obj.name = name;
+        return obj;
+
+    },
+    onOutputAllAnimations: function()
+    {
+        var self = this;
+        var obj = {};
+        var x,n;
+        n = self.animations().length;
+
+        for(x=0; x < n; x++)
+        {
+            var a = self.animations()[x];
+
+            var aobj = a.toAnimationSetObject();
+
+            obj[aobj.name] = aobj;
+            delete aobj.name;
+        }
+
+        self.editor.set(obj);
+
     }
+
+
+
 
 };
