@@ -69,8 +69,21 @@
 
 <script>
 
-    pathgen.initialize("main","bottombar","outereditor","jsoneditor");
     var dataurl = getParameterByName("dataURL");
+    var modality = getParameterByName("modality");
+    if(modality == "player")
+    {
+        document.getElementById('bottombar').style.display="none";
+        document.getElementById('outereditor').style.display="none";
+        document.getElementById('jsoneditor').style.display="none";
+        pathgen.initialize("main",null,null,null);
+    }
+    else
+    {
+        pathgen.initialize("main","bottombar","outereditor","jsoneditor");
+    }
+
+
     if(dataurl != null && dataurl.length > 0)
     {
         pathgen.loadFromURL(dataurl);
