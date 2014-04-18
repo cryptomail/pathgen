@@ -27,7 +27,7 @@
 10. Begin simulation runner [started 3/28.2014]
 11. Start building the app
 12. ~~Added sprite for the path simulator object [done 3/30/2014]~~
-13. Need to describe size of sprite in simulator
+13. ~~Need to describe size of sprite in simulator~~
 14. ~~Added versioning to path info [done 3/30/2014]~~
 15. Think about animation patterns and design.
 
