@@ -1488,11 +1488,7 @@ var pathgen = {
                     {
                         self.editor.set(data);
                     }
-                    if(self._isEditModeSimulation())
-                    {
-                        self._putSimulatorText();
-
-                    }
+                    self._startSimulation();
                 }
                 catch(v)
                 {
