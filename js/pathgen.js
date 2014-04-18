@@ -14,6 +14,12 @@ function sleep(millis, callback) {
         { callback(); }
         , millis);
 }
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
 /*
 What is an animation?
 */
@@ -144,12 +150,21 @@ var pathgen = {
     currentAnimationFrameIndex:0,
     currentAnimationKeyFrameBlock:null,
     currentAnimationTimeBlock:null,
+    maindivid:null,
+    bottombardivid:null,
+    outereditordivid:null,
+    jsoneditordivid:null,
     /*
      Initializes pathgen object.
      */
 
     setcssOfElement: function(css, target)
     {
+        if(!document.getElementById(target))
+        {
+            return;
+
+        }
         for(var prop in css) {
             document.getElementById(target).style[prop] = css[prop];
         }
@@ -176,11 +191,11 @@ var pathgen = {
             "border-width":2
         };
 
-        var main = document.getElementById("main");
-        this.setcssOfElement(maincss,"main");
+
+        this.setcssOfElement(maincss,this.maindivid);
 
 
-        var inputarea = document.getElementById("outereditor");
+        var inputarea = document.getElementById(this.outereditordivid);
         var inputcss =
         {
 
@@ -192,20 +207,20 @@ var pathgen = {
             "border-width":"2"
         };
 
-        this.setcssOfElement(inputcss,"outereditor");
+        this.setcssOfElement(inputcss,this.outereditordivid);
 
         var bottomcss =
         {
             "position":"fixed",
             "top":mainheight + maincss["border-width"]*4,
             "left":spacex,
-            "width":  mainwidth+  inputcss["width"]   +  maincss["border-width"],
+            "width":  mainwidth +  inputcss["width"]   +  maincss["border-width"],
             "height":100,
             "border-style":"solid",
             "border-width":"2"
         };
 
-        this.setcssOfElement(bottomcss,"bottombar");
+        this.setcssOfElement(bottomcss,this.bottombardivid);
 
         this._initCanvas();
 
@@ -221,7 +236,7 @@ var pathgen = {
             container.appendChild(e);
             
         }
-        var container = document.getElementById("jsoneditor");
+        var container = document.getElementById(this.jsoneditordivid);
         var options = {
         mode: 'code',
         modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
@@ -229,9 +244,10 @@ var pathgen = {
           alert(err.toString());
         }
         };
-        
-        this.editor = new jsoneditor.JSONEditor(container,options);
-
+        if(container)
+        {
+            this.editor = new jsoneditor.JSONEditor(container,options);
+        }
 
     },
     requestScreenWidthChange: function(newval)
@@ -248,7 +264,7 @@ var pathgen = {
         this.pointlist = [];
         this.segmentlist.removeAll();
 
-        var element = document.getElementById("main");
+        var element = document.getElementById(this.maindivid);
         if(!element)
         {
             return;
@@ -259,7 +275,7 @@ var pathgen = {
         }
         else
         {
-            this.paper = new Raphael("main","100%","100%");
+            this.paper = new Raphael(this.maindivid,"100%","100%");
         }
 
         var w;
@@ -351,7 +367,7 @@ var pathgen = {
         "When the mouse is released, you will be put into edit mode!"
         self.drawdirections = self.paper.text(self.screenwidth()/2 , self.screenheight()/2,drawmodesteps);
         self.drawdirections.attr({ "font-size": 10, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
-        var element = document.getElementById("main");
+        var element = document.getElementById(this.maindivid);
         element.onclick = null;
         element.onmousedown = pathgen.onPaperMouseDown;
         element.onmouseup = pathgen.onPaperMouseUp;
@@ -384,7 +400,7 @@ var pathgen = {
 
         this._putSimulatorText();
 
-        var element = document.getElementById("main");
+        var element = document.getElementById(self.maindivid);
         element.onclick = pathgen.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
@@ -422,7 +438,7 @@ var pathgen = {
 
         self._initCanvas();
 
-        var element = document.getElementById("main");
+        var element = document.getElementById(self.maindivid);
         element.onclick = pathgen.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
@@ -440,9 +456,13 @@ var pathgen = {
         return this.selectededitmode().toLowerCase() == "simulation";
     },
 
-    initialize: function()
+    initialize: function(maindivid,bottombardivid,outereditordivid,jsoneditordivid)
     {
         var pg = this;
+        pg.maindivid = maindivid;
+        pg.bottombardivid = bottombardivid;
+        pg.outereditordivid = outereditordivid;
+        pg.jsoneditordivid = jsoneditordivid;
         pg.sizePanels(pg.screenwidth(),pg.screenheight());
 
         pg.screenwidth.subscribe(pg.requestScreenWidthChange,pg);
@@ -1448,6 +1468,43 @@ var pathgen = {
             this._emitError(2, v.toString());
         }
 
+    },
+    _getDataFromURL: function(url)
+    {
+
+        var self = this;
+        $.get('http://jsonp.jit.su/?url=' + encodeURI(url), function(data)
+            {
+
+
+                try
+                {
+                    if(self._isEditModeSimulation())
+                    {
+                        self._stopSimulation();
+                    }
+                    self._pathFromJSON(data);
+                    if(self.editor)
+                    {
+                        self.editor.set(data);
+                    }
+                    if(self._isEditModeSimulation())
+                    {
+                        self._putSimulatorText();
+
+                    }
+                }
+                catch(v)
+                {
+                    self._emitError(2, v.toString());
+                }
+            }
+        );
+
+    },
+    loadFromURL: function(url)
+    {
+        this._getDataFromURL(url);
     }
 
 };

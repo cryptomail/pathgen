@@ -69,7 +69,12 @@
 
 <script>
 
-    pathgen.initialize();
+    pathgen.initialize("main","bottombar","outereditor","jsoneditor");
+    var dataurl = getParameterByName("dataURL");
+    if(dataurl != null && dataurl.length > 0)
+    {
+        pathgen.loadFromURL(dataurl);
+    }
     document.getElementById('outputjson').addEventListener('click', function(){pathgen.onOutputJSON()}, false);
     document.getElementById('inputjson').addEventListener('click', function(){pathgen.onInputJSON()} ,false);
 
