@@ -30,6 +30,8 @@
 13. ~~Need to describe size of sprite in simulator~~
 14. ~~Added versioning to path info [done 3/30/2014]~~
 15. Think about animation patterns and design.
+16. start painting with sized rects and not DOTS so content creators know spacing better
+17. Allow for more than one path at a time.
 
 
 
