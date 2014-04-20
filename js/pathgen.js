@@ -850,7 +850,9 @@ var pathgen = {
         }
 
         var xx = self._collapsePoints();
-
+        
+        self.pointlist = xx;
+        
         if(self.pathName && self.pathName().length == 0)
         {
             self.pathName(self._findTempPathName());
@@ -884,7 +886,7 @@ var pathgen = {
         }
         if( self.parentPathGen._isEditModeDraw() && e.toElement && !e.toElement.nodeName == "svg")
         {
-            console.log("mouse out");
+            
             self.parentPathGen._performMouseUp();
         }
     },
