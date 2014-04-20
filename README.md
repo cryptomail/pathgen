@@ -51,7 +51,7 @@ User is ready to draw their first path.  User draws their first path and we have
 The app then goes into playback mode.
 ####Additive Loop:
 The root path is playing.  The user may riff on top of the existing path by generating a path in a child node of the parent.
-When the mouse is down, the time and locationof when the root path is displaced is marked, and the child path is recorded.  Then,
+When the mouse is down, the time and location  of when the root path is displaced is marked, and the child path is recorded.  Then,
 on mouseup, that path is added to the root path.
 
 Should there be sibling paths to the root, or child paths?  What are the trade offs?
