@@ -104,61 +104,61 @@ segment:
     animationKeyFrameBlock:"up,down,DVS"
 }
 */
-var pathgen = {
-    paper:null,
-    editmodes:ko.observableArray(["draw","simulation"]),
-    selectededitmode:ko.observable("draw"),
-    paths:ko.observableArray(),
-    selectedpath:ko.observable(""),
-    pointlist: [],
-    segmentlist: ko.observableArray(),
-    selectedPoints:[],
-    simulationmode:false,
-    default_circle_radius:5,
-    default_sqrt_radius:Math.sqrt(10),
-    default_circle_fillcolor: "red",
-    default_line_fillcolor: "black",
-    default_circle_selectedcolor:"blue",
-    pointCounter:0,
-    screenwidth:ko.observable(320),
-    screenheight:ko.observable(480),
-    defaulttime:ko.observable(3),
-    pathName:ko.observable(""),
-    defaultrotation:ko.observable(0),
-    linewidth:5,
-    mapofpaths:{},
-    editor:null,
-    rect:null,
-    drawdirections:null,
-    mousedown:false,
-    bgimg:ko.observable(""),
-    captureinterval:null,
-    currentX:0,
-    currentY:0,
-    starttime:0,
-    elapsedtime:ko.observable(0),
-    simulationrunning:false,
-    modified:ko.observable(false),
-    simulatorset:null,
-    simulatorsegmentidx:0,
-    pathgenversion:"1",
-    animationinterval:null,
-    animationsets:null,
-    defaultAnimationSet:null,
-    defaultAnimationSetTimeBlock:null,
-    defaultAnimationSetKeyFrameBlock:null,
-    currentAnimationFrameIndex:0,
-    currentAnimationKeyFrameBlock:null,
-    currentAnimationTimeBlock:null,
-    maindivid:null,
-    bottombardivid:null,
-    outereditordivid:null,
-    jsoneditordivid:null,
+function PathGen (pathgenid) {
+        this.paper=null,
+        this.editmodes=ko.observableArray(["draw","simulation"]),
+        this.selectededitmode=ko.observable("draw"),
+        this.paths=ko.observableArray(),
+        this.selectedpath=ko.observable(""),
+        this.pointlist= [],
+        this.segmentlist= ko.observableArray(),
+        this.selectedPoints=[],
+        this.simulationmode=false,
+        this.default_circle_radius=5,
+        this.default_sqrt_radius=Math.sqrt(10),
+        this.default_circle_fillcolor= "red",
+        this.default_line_fillcolor= "black",
+        this.default_circle_selectedcolor="blue",
+        this.pointCounter=0,
+        this.screenwidth=ko.observable(320),
+        this.screenheight=ko.observable(480),
+        this.defaulttime=ko.observable(3),
+        this.pathName=ko.observable(""),
+        this.defaultrotation=ko.observable(0),
+        this.linewidth=5,
+        this.mapofpaths={},
+        this.editor=null,
+        this.rect=null,
+        this.drawdirections=null,
+        this.mousedown=false,
+        this.bgimg=ko.observable(""),
+        this.captureinterval=null,
+        this.currentX=0,
+        this.currentY=0,
+        this.starttime=0,
+        this.elapsedtime=ko.observable(0),
+        this.simulationrunning=false,
+        this.modified=ko.observable(false),
+        this.simulatorset=null,
+        this.simulatorsegmentidx=0,
+        this.pathgenversion="1",
+        this.animationinterval=null,
+        this.animationsets=null,
+        this.defaultAnimationSet=null,
+        this.defaultAnimationSetTimeBlock=null,
+        this.defaultAnimationSetKeyFrameBlock=null,
+        this.currentAnimationFrameIndex=0,
+        this.currentAnimationKeyFrameBlock=null,
+        this.currentAnimationTimeBlock=null,
+        this.maindivid=null,
+        this.bottombardivid=null,
+        this.outereditordivid=null,
+        this.jsoneditordivid=null;
     /*
      Initializes pathgen object.
      */
 
-    setcssOfElement: function(css, target)
+    this.setcssOfElement= function(css, target)
     {
         if(!document.getElementById(target))
         {
@@ -168,13 +168,13 @@ var pathgen = {
         for(var prop in css) {
             document.getElementById(target).style[prop] = css[prop];
         }
-    },
-    removeElement: function(id)
+    }
+    this.removeElement= function(id)
     {
         var elem;
         return (elem=document.getElementById(id)).parentNode.removeChild(elem);
-    },
-    sizePanels: function(mainwidth, mainheight)
+    }
+    this.sizePanels = function(mainwidth, mainheight)
     {
         var spacex = 10;
 
@@ -249,16 +249,16 @@ var pathgen = {
             this.editor = new jsoneditor.JSONEditor(container,options);
         }
 
-    },
-    requestScreenWidthChange: function(newval)
+    }
+    this.requestScreenWidthChange= function(newval)
     {
         this.sizePanels(newval,this.screenheight());
-    },
-    requestScreenHeightChange: function(newval)
+    }
+    this.requestScreenHeightChange= function(newval)
     {
         this.sizePanels(this.screenwidth(),newval);
-    },
-    _initCanvas: function()
+    }
+    this._initCanvas= function()
     {
 
         this.pointlist = [];
@@ -288,8 +288,8 @@ var pathgen = {
         element.parentPathGen = this;
         this.drawdirections = null;
 
-    },
-    requestPathSelectedChange: function(pathvalue)
+    }
+    this.requestPathSelectedChange= function(pathvalue)
     {
         if(!pathvalue)
         {
@@ -318,7 +318,7 @@ var pathgen = {
         self.pathName(pathvalue);
 
     },
-    _setbgImg: function(path)
+    this._setbgImg= function(path)
     {
         if(path)
         {
@@ -328,12 +328,12 @@ var pathgen = {
                 }
             );
         }
-    },
-    requestBGImageChange: function(path)
+    }
+    this.requestBGImageChange= function(path)
     {
         this._setbgImg(path);
-    },
-    requestSelectedEditModeChange: function(editmode)
+    }
+    this.requestSelectedEditModeChange= function(editmode)
     {
         console.log("Edit mode changed to " + editmode);
         var self  = this;
@@ -354,8 +354,8 @@ var pathgen = {
         {
             self._setbgImg(self.bgimg());
         }
-    },
-    _setEditModeDraw: function()
+    }
+    this._setEditModeDraw= function()
     {
         var self = this;
         self._initCanvas();
@@ -369,30 +369,30 @@ var pathgen = {
         self.drawdirections.attr({ "font-size": 10, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
         var element = document.getElementById(this.maindivid);
         element.onclick = null;
-        element.onmousedown = pathgen.onPaperMouseDown;
-        element.onmouseup = pathgen.onPaperMouseUp;
-        element.onmousemove = pathgen.onPaperMouseMove;
-        element.onmouseout = pathgen.onPaperMouseOut;
+        element.onmousedown = this.onPaperMouseDown;
+        element.onmouseup = this.onPaperMouseUp;
+        element.onmousemove = this.onPaperMouseMove;
+        element.onmouseout = this.onPaperMouseOut;
         self.pathName("");
 
     },
-    _putSimulatorText: function()
+    this._putSimulatorText= function()
     {
         this._removeSimulatorText();
         var drawmodesteps = "Simulation mode:\nClick to begin!"
         this.drawdirections = this.paper.text(this.screenwidth()/2 , this.screenheight()/2,drawmodesteps);
         this.drawdirections.attr({ "font-size": 16, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
 
-    },
-    _removeSimulatorText: function()
+    }
+    this._removeSimulatorText= function()
     {
       if(this.drawdirections)
       {
           this.drawdirections.remove();
           this.drawdirections = null;
       }
-    },
-    _setEditModeSimulation: function()
+    }
+    this._setEditModeSimulation=function()
     {
         var self = this;
 
@@ -401,16 +401,16 @@ var pathgen = {
         this._putSimulatorText();
 
         var element = document.getElementById(self.maindivid);
-        element.onclick = pathgen.onPaperClick;
+        element.onclick = this.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
         element.onmousemove = null;
 
 
-    },
+    }
 
 
-    _flattenPoints: function()
+    this._flattenPoints= function()
     {
         var self = this;
         var pt = [];
@@ -431,7 +431,7 @@ var pathgen = {
 
         return pt;
     },
-    _setEditModeEdit: function()
+    this._setEditModeEdit= function()
     {
         var self = this;
         var result = null;
@@ -439,24 +439,24 @@ var pathgen = {
         self._initCanvas();
 
         var element = document.getElementById(self.maindivid);
-        element.onclick = pathgen.onPaperClick;
+        element.onclick = this.onPaperClick;
         element.onmousedown = null;
         element.onmouseup = null;
-        element.onmousemove = pathgen.onPaperMouseMove;
+        element.onmousemove = this.onPaperMouseMove;
 
 
 
-    },
-    _isEditModeDraw: function()
+    }
+    this._isEditModeDraw =  function()
     {
         return this.selectededitmode().toLowerCase() == "draw";
-    },
-    _isEditModeSimulation: function()
+    }
+    this._isEditModeSimulation= function()
     {
         return this.selectededitmode().toLowerCase() == "simulation";
-    },
+    }
 
-    initialize: function(maindivid,bottombardivid,outereditordivid,jsoneditordivid)
+    this.initialize= function(maindivid,bottombardivid,outereditordivid,jsoneditordivid)
     {
         var pg = this;
         pg.maindivid = maindivid;
@@ -475,9 +475,9 @@ var pathgen = {
 
 
 
-    },
+    }
 
-    _findSegmentsFromPoint: function(c1)
+    this._findSegmentsFromPoint= function(c1)
     {
         var x;
         var pg = this;
@@ -496,26 +496,26 @@ var pathgen = {
         }
 
         return segments;
-    },
+    }
    
   
-    isSelected: function(p)
+    this.isSelected= function(p)
     {
         return this.selectedPoints.indexOf(p) >= 0;
-    },
+    }
 
 
     /*
      line angle
      */
-    lineAngle: function(p1,p2)
+        this.lineAngle= function(p1,p2)
     {
         var xDiff = p2.x - p1.x;
         var yDiff = p2.y - p1.y;
         return -Math.atan2(yDiff, xDiff);
 
     },
-    createLine: function(p1,p2,c1,c2,intervaltime,pg)
+    this.createLine= function(p1,p2,c1,c2,intervaltime,pg)
     {
 
         var lineangle = pg.lineAngle(p1,p2);
@@ -554,14 +554,14 @@ var pathgen = {
 
         line.data("parentPathGen",pg);
         return line;
-    },
-    _makeDescription: function(p1,p2,c1,c2,intervaltime)
+    }
+    this._makeDescription= function(p1,p2,c1,c2,intervaltime)
     {
 
        var v;
        v = "(" + p1.x + "," + p1.y +   "@" + c1.data("rotation") + ")" + "," + "(" + p2.x + "," + p2.y +  "@" + c2.data("rotation") + ")" + " :" + intervaltime + "s";
        return v;
-    },
+    }
 
 
    
@@ -569,7 +569,7 @@ var pathgen = {
      addPoint
      Adds a point at x,y
      */
-    addPoint: function(x,y,thetime)
+    this.addPoint= function(x,y,thetime)
     {
         var pg = this;
         pg.modified(true);
@@ -609,20 +609,20 @@ var pathgen = {
             pg.segmentlist.push(line);
 
         }
-    },
+    }
 
 
-    onTimer: function()
+    this.onTimer= function(pathgen)
     {
 
-        //console.log("x: " + + " y: "+ this.pathgen.currentY);
-        this.pathgen.addPoint(this.pathgen.currentX,this.pathgen.currentY);
+
+        pathgen.addPoint(pathgen.currentX,pathgen.currentY);
 
         var d = new Date();
         var n = d.getTime();
-        this.pathgen.elapsedtime((n-this.pathgen.starttime)/1000);
-    },
-    onPaperClick: function(e)
+        pathgen.elapsedtime((n-pathgen.starttime)/1000);
+    }
+    this.onPaperClick=function(e)
     {
         if(!this.parentPathGen)
         {
@@ -642,9 +642,9 @@ var pathgen = {
             return true;
         }
 
-    },
+    }
 
-    _showAllPaperElements: function(show, types)
+    this._showAllPaperElements= function(show, types)
     {
         var bot = this.paper.bottom, res = [];
         while (bot) {
@@ -668,8 +668,8 @@ var pathgen = {
                 }
             }
         );
-    },
-    _startSimulation: function()
+    }
+    this._startSimulation=function()
     {
         var self  = this;
         if(self.simulationrunning)
@@ -729,8 +729,8 @@ var pathgen = {
             self.animationinterval = setTimeout(function(){self.onAnimationTimer(self);},self.currentAnimationTimeBlock[self.currentAnimationFrameIndex]);
         }
 
-    },
-    onAnimationTimer: function(par)
+    }
+    this.onAnimationTimer= function(par)
     {
 
         par.currentAnimationFrameIndex = par.currentAnimationFrameIndex + 1;
@@ -746,8 +746,8 @@ var pathgen = {
         par.simulatorset[0].attr({src:url});
 
         return;
-    },
-    _segmentDone: function()
+    }
+    this._segmentDone=function()
     {
 
         var pg = this.items[0].data("parentPathGen");
@@ -763,8 +763,8 @@ var pathgen = {
         ms = pg.segmentlist()[pg.simulatorsegmentidx].data("intervaltime");
         pg.simulatorset.animate({transform: "t"+cx + ","+ cy + "r"+rot},ms,"linear",pg._segmentDone);
 
-    },
-    _stopSimulation: function()
+    }
+    this._stopSimulation=function()
     {
         var self  = this;
 
@@ -791,11 +791,11 @@ var pathgen = {
         self._putSimulatorText();
         self._showAllPaperElements(true,["rect","circle","path"]);
         self.simulationrunning = false;
-    },
+    }
     /*
      click handler for our canvas.  We'll put points here.
      */
-    onPaperMouseDown: function(e)
+    this.onPaperMouseDown= function(e)
     {
         if(!this.parentPathGen)
         {
@@ -818,11 +818,12 @@ var pathgen = {
             var n = d.getTime();
             this.parentPathGen.starttime = n;
             this.parentPathGen.addPoint(e.offsetX, e.offsetY);
-            this.parentPathGen.captureinterval = setInterval(this.parentPathGen.onTimer,10);
+            var pg = this.parentPathGen;
+            this.parentPathGen.captureinterval = setInterval(function(){pg.onTimer(pg)},10);
             this.parentPathGen.mousedown=true;
         }
-    },
-    _findTempPathName: function()
+    }
+    this._findTempPathName=function()
     {
         var self = this;
         var x=0;
@@ -838,8 +839,8 @@ var pathgen = {
             x++;
         }
         return null;
-    },
-    _performMouseUp: function()
+    }
+    this._performMouseUp= function()
     {
         var self = this;
 
@@ -866,8 +867,8 @@ var pathgen = {
         }
         
 
-    },
-    onPaperMouseUp: function(e)
+    }
+    this.onPaperMouseUp= function(e)
     {
         var self = this;
         if(!self.parentPathGen)
@@ -876,8 +877,8 @@ var pathgen = {
         }
         self.parentPathGen._performMouseUp();
 
-    },
-    onPaperMouseOut: function(e)
+    }
+    this.onPaperMouseOut= function(e)
     {
         var self = this;
         if(!self.parentPathGen)
@@ -889,8 +890,8 @@ var pathgen = {
             
             self.parentPathGen._performMouseUp();
         }
-    },
-    _collapsePoints: function()
+    }
+    this._collapsePoints=function()
     {
         var self = this;
         var x;
@@ -937,8 +938,8 @@ var pathgen = {
 
         return newlist;
 
-    },
-    onPaperMouseMove: function(e)
+    }
+    this.onPaperMouseMove= function(e)
     {
         if(!this.parentPathGen)
         {
@@ -946,11 +947,11 @@ var pathgen = {
         }
         this.parentPathGen.currentX = e.offsetX;
         this.parentPathGen.currentY = e.offsetY;
-    },
+    }
 
     
     
-    _emitError: function()
+    this._emitError =function()
     {
         var errormap = {
             1:"Pathname invalid.",
@@ -973,8 +974,8 @@ var pathgen = {
             }
             $.growl.error({ message: msg});
         }
-    },
-    _pathToJSON: function()
+    }
+    this._pathToJSON= function()
     {
         var obj = {};
         if(this.pathName() == null || this.pathName().length <= 0)
@@ -1015,8 +1016,8 @@ var pathgen = {
         this.selectedpath(this.pathName());
         this.mapofpaths[this.pathName()] = obj;
         return obj;
-    },
-    onOutputJSON: function()
+    }
+    this.onOutputJSON= function()
     {
         var self = this;
         var obj = self._pathToJSON();
@@ -1027,16 +1028,16 @@ var pathgen = {
         self.editor.set(obj);
 
         self.modified(false);
-    },
-    _validateObject_1: function(obj)
+    }
+    this._validateObject_1= function(obj)
     {
         /*
         stubbed heh
         TODO: validate!!
         */
         return 0;
-    },
-    _pathFromJSON: function(obj)
+    }
+    this._pathFromJSON= function(obj)
     {
 
         var self = this;
@@ -1113,8 +1114,8 @@ var pathgen = {
 
 
 
-    },
-    onInputJSON: function()
+    }
+    this.onInputJSON= function()
     {
         var self = this;
         try
@@ -1138,8 +1139,8 @@ var pathgen = {
             this._emitError(2, v.toString());
         }
 
-    },
-    _getDataFromURL: function(url)
+    }
+    this._getDataFromURL=function(url)
     {
 
         var self = this;
@@ -1167,10 +1168,10 @@ var pathgen = {
             }
         );
 
-    },
-    loadFromURL: function(url)
+    }
+    this.loadFromURL= function(url)
     {
         this._getDataFromURL(url);
     }
 
-};
+}

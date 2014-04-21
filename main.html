@@ -71,6 +71,7 @@
 
     var dataurl = getParameterByName("dataURL");
     var modality = getParameterByName("modality");
+    pathgen = new PathGen("main");
     if(modality == "player")
     {
         document.getElementById('bottombar').style.display="none";
@@ -80,6 +81,7 @@
     }
     else
     {
+
         pathgen.initialize("main","bottombar","outereditor","jsoneditor");
     }
 
