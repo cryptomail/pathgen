@@ -9,10 +9,28 @@ div.select{
 
 }
 div.delbutton
+ {
+     border-style:dotted;
+     border-width:1px;
+     background-color:red;
+     width:30px;
+     height:20px;
+     float: left;
+ }
+div.addbutton
 {
     border-style:dotted;
     border-width:1px;
-    background-color:red;
+    background-color:greenyellow;
+    width:30px;
+    height:20px;
+    float: left;
+}
+div.syncbutton
+{
+    border-style:dotted;
+    border-width:1px;
+    background-color:blueviolet;
     width:30px;
     height:20px;
     float: left;

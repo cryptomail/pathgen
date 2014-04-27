@@ -1,8 +1,34 @@
 /**
  * Created by joshuateitelbaum on 4/20/14.
  */
-function PathGenLayoutManager(mainwidth,mainheight)
+function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordivid, jsoneditordivid, w,h,dataurl)
 {
+
+    this.maindivid = maindivid;
+    this.bottombardivid = bottombardivid;
+    this.outereditordivid = outereditordivid;
+    this.jsoneditordivid = jsoneditordivid;
+    this.screenwidth= ko.observable(w);
+    this.screenheight = ko.observable(h);
+    this.modality = modality;
+    this.editor = null;
+    this.pathName=ko.observable("");
+    this.paths=ko.observableArray();
+    this.selectedpath=ko.observable("");
+    this.mapofpaths={};
+    this.editmodes=ko.observableArray(["draw","simulation"]);
+    this.bgimg=ko.observable("");
+    this.layerids=ko.observableArray([]);
+    this.selectedlayerid=ko.observable("");
+    this.nLayers = 0;
+
+    this.layers = {};
+
+
+    this._getActiveLayer = function()
+    {
+        return this.layers[this.selectedlayerid()];
+    }
     this.setcssOfElement= function(css, target)
     {
         if(!document.getElementById(target))
@@ -14,40 +40,103 @@ function PathGenLayoutManager(mainwidth,mainheight)
             document.getElementById(target).style[prop] = css[prop];
         }
     }
+
+    this.requestSelectedLayerIdChange = function(newval)
+    {
+        console.log("layerid selected: " + newval);
+
+        var spacex = 10;
+        var maincss =
+        {
+
+            "position":"fixed",
+            "top": 8,
+            "left":spacex,
+            "overflow":"hidden",
+            "width":this.screenwidth(),
+            "height":this.screenheight(),
+            "border-style":"solid",
+            "border-width":2,
+            "z-index":this.layerids().length,
+            "opacity":1
+        };
+
+
+        this.setcssOfElement(maincss,newval);
+
+        if(this.layers == null || this.layerids().length <= 0)
+        {
+            return;
+        }
+        var self = this;
+        var opacitymult = 1.0/this.layerids().length;
+        this.layerids().forEach( function(l,idx)
+        {
+          if(l != newval)
+          {
+              maincss["opacity"] = .5;
+              maincss["z-index"] = idx;
+              self.setcssOfElement(maincss, l);
+
+          }
+        });
+
+
+    }
+
     this.removeElement= function(id)
     {
         var elem;
         return (elem=document.getElementById(id)).parentNode.removeChild(elem);
     }
-    this.sizePanels = function(mainwidth, mainheight)
+    this.requestScreenWidthChange= function(newval)
+    {
+        this.sizePanels(newval,this.screenheight());
+    }
+    this.requestScreenHeightChange= function(newval)
+    {
+        this.sizePanels(this.screenwidth(),newval);
+    }
+    this.requestBGImageChange= function(path)
+    {
+        this._getActiveLayer()._setbgImg(path);
+    }
+    this.pathChanged = function(layerid, obj)
+    {
+        if(this.editor)
+        {
+            this.editor.set(obj);
+        }
+    }
+    /*
+    sizePanels:  mobile:
+    mobile wont' be able to do this
+     */
+    this.sizePanels = function(w, h)
     {
         var spacex = 10;
-
-        mainwidth = parseInt(mainwidth);
-        mainheight = parseInt(mainheight);
-
-
+        w = parseInt(w);
+        h = parseInt(h);
         var maincss =
         {
+
             "left":spacex,
-            "width":mainwidth,
-            "height":mainheight,
+            "width":w,
+            "height":h,
             "border-style":"solid",
             "border-width":2
         };
 
-
         this.setcssOfElement(maincss,this.maindivid);
-
 
         var inputarea = document.getElementById(this.outereditordivid);
         var inputcss =
         {
-
+            "position":"fixed",
             "top":8,
-            "left":  mainwidth + spacex + maincss["border-width"],
+            "left":  w + spacex + maincss["border-width"],
             "width":400,
-            "height":mainheight,
+            "height":h,
             "border-style":"solid",
             "border-width":"2"
         };
@@ -57,9 +146,9 @@ function PathGenLayoutManager(mainwidth,mainheight)
         var bottomcss =
         {
             "position":"fixed",
-            "top":mainheight + maincss["border-width"]*4,
+            "top":h + maincss["border-width"]*4,
             "left":spacex,
-            "width":  mainwidth +  inputcss["width"]   +  maincss["border-width"],
+            "width":  w+  inputcss["width"]   +  maincss["border-width"],
             "height":100,
             "border-style":"solid",
             "border-width":"2"
@@ -67,16 +156,22 @@ function PathGenLayoutManager(mainwidth,mainheight)
 
         this.setcssOfElement(bottomcss,this.bottombardivid);
 
-        this._initCanvas();
+        var self = this;
+        this.layerids().forEach(function(i)
+        {
+            self.layers[i]._initCanvas();
+        }
+        );
+
 
         if(this.editor)
         {
-            var container = document.getElementById("outereditor");
-            var edold = document.getElementById("jsoneditor");
+            var container = document.getElementById(this.outereditordivid);
+            var edold = document.getElementById(this.jsoneditordivid);
             var style = edold.style;
-            this.removeElement("jsoneditor");
+            this.removeElement(this.jsoneditordivid);
             var e = document.createElement("div");
-            e.id = "jsoneditor";
+            e.id = this.jsoneditordivid;
             e.style = style;
             container.appendChild(e);
 
@@ -95,5 +190,139 @@ function PathGenLayoutManager(mainwidth,mainheight)
         }
 
     }
-    this.sizePanels(mainwidth,mainheight);
+    this.onAddLayerClicked = function()
+    {
+        this.nLayers++;
+        var layerid = "layer-" + this.nLayers;
+        var div = document.createElement('div');
+        div.id = layerid;
+        var maindiv = document.getElementById(this.maindivid);
+
+
+        var objTo = document.getElementById(this.maindivid);
+
+        objTo.appendChild(div);
+        var pathgen = new PathGen(layerid,layerid);
+        this.layerids.push(layerid);
+        this.layers[layerid] = pathgen;
+        this.selectedlayerid(layerid);
+
+
+    }
+    this.selectedElapsedTime = function()
+    {
+        if((!this.layers) || !this.layers[this.selectedlayerid()])
+        {
+            return 0;
+        }
+        return this.layers[this.selectedlayerid()].elapsedtime();
+    }
+    this.onDelLayerClicked = function()
+    {
+        var target = this.selectedlayerid();
+
+
+        var idx = this.layerids.indexOf(target);
+        if(idx < 0)
+        {
+            return;
+        }
+
+        this.layers[target]._stopSimulation();
+
+        if(this.layerids().length == 1)
+        {
+            this.layers[target]._initCanvas();
+            this.layers[target].selectededitmode("draw");
+        }
+        else
+        {
+            delete this.layers[target];
+            this.removeElement(target);
+            this.layerids.splice(idx, 1);
+
+        }
+
+    }
+    this.onSyncClicked = function()
+    {
+        var self = this;
+        this.layerids().forEach(function(id)
+        {
+            self.layers[id]._stopSimulation();
+            self.layers[id].selectededitmode("simulation");
+            self.layers[id]._startSimulation();
+
+        });
+    }
+    this._getDataFromURL=function(url)
+    {
+
+        var self = this;
+        $.get('http://jsonp.jit.su/?url=' + encodeURI(url), function(data)
+            {
+
+
+                try
+                {
+                    if(self._isEditModeSimulation())
+                    {
+                        self._stopSimulation();
+                    }
+                    self._pathFromJSON(data);
+                    if(self.editor)
+                    {
+                        self.editor.set(data);
+                    }
+                    self._startSimulation();
+                }
+                catch(v)
+                {
+                    self._emitError(2, v.toString());
+                }
+            }
+        );
+
+    }
+
+    if(this.modality=="player")
+    {
+        if(this.bottombardivid && document.getElementById(this.bottombardivid))
+        {
+            document.getElementById(this.bottombardivid).style.display="none";
+        }
+        if(this.outereditordivid && document.getElementById(this.outereditordivid))
+        {
+            document.getElementById(this.outereditordivid).style.display="none";
+        }
+        if(this.jsoneditordivid && document.getElementById(this.jsoneditordivid))
+        {
+            document.getElementById(this.jsoneditordivid).style.display="none";
+        }
+
+    }
+
+
+    this.sizePanels(w,h);
+    this.screenwidth(w);
+    this.screenheight(h);
+    this.screenwidth.subscribe(this.requestScreenWidthChange,this);
+    this.screenheight.subscribe(this.requestScreenHeightChange,this);
+    this.selectedlayerid.subscribe(this.requestSelectedLayerIdChange,this);
+
+    this.bgimg.subscribe(this.requestBGImageChange,this);
+
+
+    if(dataurl == null || dataurl.length <= 0)
+    {
+        this.onAddLayerClicked();
+
+    }
+    else
+    {
+        //TODO load from URL
+    }
+
+    var self = this;
+    ko.applyBindings(this);
 }
