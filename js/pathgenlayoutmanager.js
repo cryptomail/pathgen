@@ -252,6 +252,8 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
         });
         this._getBottomMostLayer()._setbgImg(this.bgimg());
 
+        this._syncLayers(true);
+
 
     }
     this.selectedElapsedTime = function()
@@ -289,14 +291,31 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
         }
 
     }
+
     this.onSyncClicked = function()
+    {
+        this._syncLayers(false);
+    }
+    this._syncLayers = function(onlyrunning)
     {
         var self = this;
         this.layerids().forEach(function(id)
         {
-            self.layers[id]._stopSimulation();
-            self.layers[id].selectededitmode("simulation");
-            self.layers[id]._startSimulation();
+            if(onlyrunning)
+            {
+                if(self.layers[id].selectededitmode()=="simulation")
+                {
+                    self.layers[id]._stopSimulation();
+                    self.layers[id].selectededitmode("simulation");
+                    self.layers[id]._startSimulation();
+                }
+            }
+            else
+            {
+                self.layers[id]._stopSimulation();
+                self.layers[id].selectededitmode("simulation");
+                self.layers[id]._startSimulation();
+            }
 
         });
     }

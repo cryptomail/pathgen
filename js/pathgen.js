@@ -641,15 +641,18 @@ function PathGen (layerid, maindivid) {
         }
         simulatorpoint.data(("parentPathGen"),self);
         self.simulatorset.push(simulatorpoint);
-        self.simulatorset.translate(self.pointlist[0].attr("cx"),self.pointlist[0].attr("cy"));
-        
-        
-        
-        self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
-        self.simulatorsegmentidx = -1;
-        if(animating)
+        if(self.pointlist.length > 0)
         {
-            self.animationinterval = setTimeout(function(){self.onAnimationTimer(self);},self.currentAnimationTimeBlock[self.currentAnimationFrameIndex]);
+            self.simulatorset.translate(self.pointlist[0].attr("cx"),self.pointlist[0].attr("cy"));
+
+
+
+            self.simulatorset.animate({fill: self.default_circle_fillcolor},0,"linear",self._segmentDone);
+            self.simulatorsegmentidx = -1;
+            if(animating)
+            {
+                self.animationinterval = setTimeout(function(){self.onAnimationTimer(self);},self.currentAnimationTimeBlock[self.currentAnimationFrameIndex]);
+            }
         }
 
     }
@@ -799,6 +802,7 @@ function PathGen (layerid, maindivid) {
         {
 
             self.selectededitmode("simulation");
+            self._startSimulation();
 
         }
         self._setbgImg(bgimg);
