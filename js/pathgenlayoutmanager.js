@@ -16,7 +16,6 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
     this.paths=ko.observableArray();
     this.selectedpath=ko.observable("");
     this.mapofpaths={};
-    this.editmodes=ko.observableArray(["draw","simulation"]);
     this.bgimg=ko.observable("");
     this.layerids=ko.observableArray([]);
     this.selectedlayerid=ko.observable("");
@@ -126,6 +125,7 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
         }
 
 
+
     }
     /*
     sizePanels:  mobile:
@@ -180,9 +180,10 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
         this.layerids().forEach(function(i)
         {
             self.layers[i]._initCanvas();
+            self.layers[i].selectededitmode("");
+            self.layers[i].selectededitmode("draw");
         }
         );
-
 
         if(this.editor)
         {
@@ -208,6 +209,7 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
         {
             this.editor = new jsoneditor.JSONEditor(container,options);
         }
+
 
     }
     this.onAddLayerClicked = function()

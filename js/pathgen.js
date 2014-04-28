@@ -774,6 +774,12 @@ function PathGen (layerid, maindivid) {
             self.pathName(self._findTempPathName());
 
         }
+
+        self._initCanvas();
+        xx.forEach(function(p)
+        {
+           self.addPoint(p.attr("cx"),p.attr("cy"),p.attr("time"));
+        });
         if(!(self.pointlist == null || self.pointlist.length == 0))
         {
 
