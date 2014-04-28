@@ -246,12 +246,25 @@ function PathGen (layerid, maindivid) {
     {
         if(path)
         {
+
             this.rect.attr(
                 {
                     fill: "url(" + path + ")"
                 }
             );
+
             this.bgimg = path;
+
+        }
+        else
+        {
+            this.rect.attr(
+                {
+                    fill:""
+                }
+
+            );
+            this.bgimg="";
         }
     }
 

@@ -26,7 +26,14 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
 
     this._getBottomMostLayer = function()
     {
-        return this.layers[this.layerids()[this.layerids().length-1]];
+        var idx = this.layerids().length-1;
+        var bottom = this.layers[this.layerids()[idx]];
+        if(this.selectedlayerid() == this.layerids()[idx] && idx > 0)
+        {
+            idx--;
+        }
+        bottom = this.layers[this.layerids()[idx]];
+        return bottom;
     }
     this._getActiveLayer = function()
     {
