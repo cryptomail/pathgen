@@ -251,6 +251,7 @@ function PathGen (layerid, maindivid) {
                     fill: "url(" + path + ")"
                 }
             );
+            this.bgimg = path;
         }
     }
 
@@ -766,6 +767,7 @@ function PathGen (layerid, maindivid) {
         }
 
         var xx = self._collapsePoints();
+        var bgimg = self.bgimg;
         
         self.pointlist = xx;
         
@@ -786,7 +788,7 @@ function PathGen (layerid, maindivid) {
             self.selectededitmode("simulation");
 
         }
-        
+        self._setbgImg(bgimg);
 
     }
     this.onPaperMouseUp= function(e)

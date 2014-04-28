@@ -24,6 +24,10 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
     this.layers = {};
 
 
+    this._getBottomMostLayer = function()
+    {
+        return this.layers[this.layerids()[this.layerids().length-1]];
+    }
     this._getActiveLayer = function()
     {
         return this.layers[this.selectedlayerid()];
@@ -83,7 +87,11 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
           }
         });
 
-
+        this.layerids().forEach(function(l)
+        {
+            self.layers[l]._setbgImg("");
+        });
+        this._getBottomMostLayer()._setbgImg(this.bgimg());
     }
 
     this.removeElement= function(id)
@@ -101,7 +109,8 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
     }
     this.requestBGImageChange= function(path)
     {
-        this._getActiveLayer()._setbgImg(path);
+
+        this._getBottomMostLayer()._setbgImg(path);
     }
     this.pathChanged = function(layerid, obj)
     {
@@ -228,6 +237,13 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
         this.layerids.push(layerid);
         this.layers[layerid] = pathgen;
         this.selectedlayerid(layerid);
+        var self = this;
+
+        this.layerids().forEach(function(l)
+        {
+            self.layers[l]._setbgImg("");
+        });
+        this._getBottomMostLayer()._setbgImg(this.bgimg());
 
 
     }
