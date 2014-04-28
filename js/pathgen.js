@@ -489,7 +489,7 @@ function PathGen (layerid, maindivid) {
         circle.show();
         var d = new Date();
         var n = d.getTime();
-        circle.data("time",thetime!=null?thetime:n);
+        circle.data("time",thetime?thetime:n);
 
         pg.pointCounter++;
 
@@ -778,7 +778,7 @@ function PathGen (layerid, maindivid) {
         self._initCanvas();
         xx.forEach(function(p)
         {
-           self.addPoint(p.attr("cx"),p.attr("cy"),p.attr("time"));
+           self.addPoint(p.attr("cx"),p.attr("cy"),p.data("time"));
         });
         if(!(self.pointlist == null || self.pointlist.length == 0))
         {
