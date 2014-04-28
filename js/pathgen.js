@@ -287,7 +287,10 @@ function PathGen (layerid, maindivid) {
         var drawmodesteps = "Draw mode:\nStart drawing on mouse down, and draw your path.\nInclude all your pauses while holding the mouse.\n" +
         "When the mouse is released, you will be put into edit mode!"
         self.drawdirections = self.paper.text(self.containerWidth()/2 , self.containerHeight()/2,drawmodesteps);
-        self.drawdirections.attr({ "font-size": 10, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
+        self.drawdirections.attr({ "font-size": 10, "fill":"black","font-family": "Arial, Helvetica, sans-serif"});
+        this.drawdirections.node.style["pointer-events"] = "none";
+        this.drawdirections.node.style["pointerEvents"] = "none";
+
         var element = document.getElementById(this.maindivid);
         element.onclick = null;
         element.onmousedown = this.onPaperMouseDown;
@@ -304,7 +307,9 @@ function PathGen (layerid, maindivid) {
         this._removeSimulatorText();
         var drawmodesteps = "Simulation mode:\nClick to begin!"
         this.drawdirections = this.paper.text(this.containerWidth()/2 , this.containerHeight()/2,drawmodesteps);
-        this.drawdirections.attr({ "font-size": 16, "fill":"black","font-family": "Arial, Helvetica, sans-serif" });
+        this.drawdirections.attr({ "font-size": 16, "fill":"black","font-family": "Arial, Helvetica, sans-serif"});
+        this.drawdirections.node.style["pointer-events"] = "none";
+        this.drawdirections.node.style["pointerEvents"] = "none";
 
     }
     this._removeSimulatorText= function()
@@ -481,6 +486,7 @@ function PathGen (layerid, maindivid) {
         circle.data("pointId",pg.pointCounter);
         circle.data("parentPathGen",pg);
         circle.data("rotation",pg.defaultrotation());
+        circle.show();
         var d = new Date();
         var n = d.getTime();
         circle.data("time",thetime!=null?thetime:n);
@@ -724,7 +730,9 @@ function PathGen (layerid, maindivid) {
             var d = new Date();
             var n = d.getTime();
             this.parentPathGen.starttime = n;
-            this.parentPathGen.addPoint(e.offsetX, e.offsetY);
+            var x = e.offsetX==undefined?e.layerX:e.offsetX;
+            var y = e.offsetY==undefined?e.layerY:e.offsetY;
+            this.parentPathGen.addPoint(x,y);
             var pg = this.parentPathGen;
             this.parentPathGen.captureinterval = setInterval(function(){pg.onTimer(pg)},10);
             this.parentPathGen.mousedown=true;
@@ -852,8 +860,11 @@ function PathGen (layerid, maindivid) {
         {
             return;
         }
-        this.parentPathGen.currentX = e.offsetX;
-        this.parentPathGen.currentY = e.offsetY;
+        var x = e.offsetX==undefined?e.layerX:e.offsetX;
+        var y = e.offsetY==undefined?e.layerY:e.offsetY;
+
+        this.parentPathGen.currentX = x;
+        this.parentPathGen.currentY = y;
     }
 
     

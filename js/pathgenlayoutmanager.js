@@ -52,13 +52,14 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
             "position":"fixed",
             "top": 8,
             "left":spacex,
-            "overflow":"hidden",
             "width":this.screenwidth(),
             "height":this.screenheight(),
             "border-style":"solid",
             "border-width":2,
-            "z-index":this.layerids().length,
-            "opacity":1
+            "z-index":this.layerids().length+1,
+            "opacity":1,
+            "pointer-events":"auto",
+            "pointerEvents":"auto"
         };
 
 
@@ -75,7 +76,9 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
           if(l != newval)
           {
               maincss["opacity"] = .5;
-              maincss["z-index"] = idx;
+              maincss["z-index"] = idx+1;
+              maincss["pointer-events"]="none";
+              maincss["pointerEvents"]="none";
               self.setcssOfElement(maincss, l);
 
           }
@@ -108,12 +111,29 @@ function PathGenLayoutManager(modality, maindivid, bottombardivid, outereditordi
             this.editor.set(obj);
         }
     }
+    this.removeAllLayers = function()
+    {
+        var idx = this.layerids().length-1;
+        if(idx < 0)
+        {
+            return;
+        }
+        while(idx >= 0)
+        {
+            this.selectedlayerid(this.layerids[idx]);
+            idx--;
+            this.onDelLayerClicked();
+        }
+
+
+    }
     /*
     sizePanels:  mobile:
     mobile wont' be able to do this
      */
     this.sizePanels = function(w, h)
     {
+        this.removeAllLayers();
         var spacex = 10;
         w = parseInt(w);
         h = parseInt(h);
