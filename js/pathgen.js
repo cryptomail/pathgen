@@ -205,7 +205,7 @@ function PathGen (layerid, maindivid) {
         var h;
         w = this.containerWidth();
         h = this.containerHeight();
-        this.rect = this.paper.rect(0,0,w,h);
+        this.rect = this.paper.image("",0,0,w,h);
         this.rect.data("parentPathGen",this);
         this.paper.parentPathGen = this;
         element.parentPathGen = this;
@@ -244,27 +244,29 @@ function PathGen (layerid, maindivid) {
     },
     this._setbgImg= function(path)
     {
+        if(this.rect)
+        {
+            this.rect.remove();
+            this.rect = null;
+        }
         if(path)
         {
 
-            this.rect.attr(
-                {
-                    fill: "url(" + path + ")"
-                }
-            );
+            if(this.rect)
+            {
+                this.rect.remove();
+                this.rect = null;
+            }
 
+            this.rect = this.paper.image(path,0,0,this.containerWidth(),this.containerHeight()).attr("opacity",".5");
+            
             this.bgimg = path;
 
         }
         else
         {
-            this.rect.attr(
-                {
-                    fill:""
-                }
-
-            );
-            this.bgimg="";
+            
+           this.bgimg="";
         }
     }
 
